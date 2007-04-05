@@ -1,15 +1,23 @@
 History for RooUnfold
 =====================
 
-$Id: History,v 1.1.1.1 2007-04-04 14:53:56 adye Exp $
+$Id: History,v 1.5 2007-04-05 22:40:13 adye Exp $
 
 Put notes on the changes to this package here (latest at the top).
 If you make a tag, please document it here as well.
 
 -------------------------------------------------------------------------
 
-Tim Adye  4-Apr-2007
+Tim Adye  5-Apr-2007 V00-01-02
+  o By default, build test programs with static RooUnfold library,
+    so don't need to set LD_LIBRARY_PATH.
+  o Only link programs that need RooFit against RooFit.
+  o Default NOROOFIT=1 if RooFit is not available.
+  o Move README examples to the web page.
+
+Tim Adye  4-Apr-2007 V00-01-01
   o Combine RooUnfHistoSvd and RooUnfold into a single stand-alone package.
+  o Rewritten standalone GNUMakefile.
   o Combined History entries below.
 
 Tim Adye 14-Nov-2006 tja061114a
