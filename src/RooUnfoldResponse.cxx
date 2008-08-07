@@ -1,6 +1,6 @@
 //==============================================================================
 // File and Version Information:
-//      $Id: RooUnfoldResponse.cxx,v 1.1.1.1 2007-04-04 21:27:25 adye Exp $
+//      $Id: RooUnfoldResponse.cxx,v 1.3 2008-01-23 23:06:14 adye Exp $
 //
 // Description:
 //      Response Matrix
@@ -16,7 +16,9 @@
 #include "RooUnfoldResponse.h"
 
 #include <iostream>
+#include <assert.h>
 
+#include "TClass.h"
 #include "TNamed.h"
 #include "TH1.h"
 #include "TH2.h"
