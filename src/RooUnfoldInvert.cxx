@@ -1,6 +1,6 @@
 //=====================================================================-*-C++-*-
 // File and Version Information:
-//      $Id: RooUnfoldInvert.cxx,v 1.6 2010-09-10 17:14:34 adye Exp $
+//      $Id$
 //
 // Description:
 //      Unfolding class using inversion of the response matrix. This does not produce
@@ -99,7 +99,6 @@ RooUnfoldInvert::Unfold()
   Bool_t ok= _svd->Solve (_rec);
   if (!ok) {
     cerr << "Response matrix Solve failed" << endl;
-    _fail= true;
     return;
   }
 
@@ -115,7 +114,6 @@ RooUnfoldInvert::GetCov()
     resinv=_svd->Invert(ok);
     if (!ok) {
       cerr << "response matrix inversion failed" << endl;
-      _fail= true;
       return;
     }
 

@@ -1,6 +1,6 @@
 //=====================================================================-*-C++-*-
 // File and Version Information:
-//      $Id: RooUnfoldResponse.h,v 1.14 2010/09/10 23:58:02 adye Exp $
+//      $Id$
 //
 // Description:
 //      Response Matrix
@@ -62,6 +62,8 @@ public:
           Int_t Miss (Double_t xt, Double_t w);  // Fill missed event into 1D (with weight) or 2D Response Matrix
           Int_t Miss (Double_t xt, Double_t yt, Double_t w);  // Fill missed event into 2D (with weight) or 3D Response Matrix
   virtual Int_t Miss (Double_t xt, Double_t yt, Double_t zt, Double_t w);  // Fill missed event into 3D Response Matrix
+
+  virtual void Add (const RooUnfoldResponse& rhs);
 
   // Accessors
 
