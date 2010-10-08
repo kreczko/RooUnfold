@@ -1,6 +1,6 @@
 //=====================================================================-*-C++-*-
 // File and Version Information:
-//      $Id: RooUnfold.cxx,v 1.46 2010/09/14 22:47:56 adye Exp $
+//      $Id$
 //
 // Description:
 //      Unfolding framework base class.
@@ -88,6 +88,9 @@ END_HTML */
 #ifndef NOTUNFOLD
 #include "RooUnfoldTUnfold.h"
 #endif
+#ifdef HAVE_DAGOSTINI
+#include "RooUnfoldDagostini.h"
+#endif
 
 using std::cout;
 using std::cerr;
@@ -143,8 +146,16 @@ RooUnfold* RooUnfold::New (Algorithm alg, const RooUnfoldResponse* res, const TH
       return 0;
 #endif
     case kInvert:
-      unfold = new RooUnfoldInvert (res,meas);
+      unfold = new RooUnfoldInvert  (res,meas);
       break;
+    case kDagostini:
+#ifdef HAVE_DAGOSTINI
+      unfold = new RooUnfoldDagostini (res,meas);
+      break;
+#else
+      cerr << "RooUnfoldDagostini is not available" << endl;
+      return 0;
+#endif
     default:
       cerr << "Unknown RooUnfold method " << Int_t(alg) << endl;
       return 0;
@@ -304,21 +315,33 @@ void RooUnfold::GetErrMat()
 
 Bool_t RooUnfold::UnfoldWithErrors (ErrorTreatment withError)
 {
-  if (!_unfolded) Unfold();
-  if (_fail)      return false;
+  if (!_unfolded) {
+    if (_fail) return false;
+    Unfold();
+    if (!_unfolded) {
+      _fail= true;
+      return false;
+    }
+  }
+  Bool_t ok;
   switch (withError) {
     case kErrors:
       if   (!_haveErrors)   GetErrors();
-      return _haveErrors;
+      ok= _haveErrors;
+      break;
     case kCovariance:
       if   (!_haveCov)      GetCov();
-      return _haveCov;
+      ok= _haveCov;
+      break;
     case kCovToy:
       if   (!_have_err_mat) GetErrMat();
-      return _have_err_mat;
+      ok= _have_err_mat;
+      break;
     default:
-      return true;
+      ok= true;
   }
+  if (!ok) _fail= true;
+  return ok;
 }
 
 Double_t RooUnfold::Chi2(const TH1* hTrue,ErrorTreatment DoChi2)
@@ -334,6 +357,7 @@ Double_t RooUnfold::Chi2(const TH1* hTrue,ErrorTreatment DoChi2)
     if (DoChi2==kCovariance||DoChi2==kCovToy){
         TMatrixD ereco(_nt,_nt);
         ereco=Ereco(DoChi2);
+        if (!_unfolded) return -1;
 
         TVectorD res(_nt);
         for (Int_t i = 0 ; i < _nt; i++) {
@@ -373,6 +397,7 @@ Double_t RooUnfold::Chi2(const TH1* hTrue,ErrorTreatment DoChi2)
         Double_t chi2=0;
         TVectorD ereco(_nt);
         ereco= ErecoV(DoChi2);
+        if (!_unfolded) return -1;
         for (Int_t i = 0 ; i < _nt; i++) {
             Int_t it= RooUnfoldResponse::GetBin (hTrue, i, _overflow);
             if (ereco(i)>0.0 &&
@@ -391,7 +416,7 @@ void RooUnfold::PrintTable (std::ostream& o, const TH1* hTrue, ErrorTreatment wi
 {
     //Prints data from truth, measured and reconstructed data for each bin.
   const TH1* hReco=      Hreco (withError);
-  if (_fail) return;
+  if (!_unfolded) return;
   const TH1* hMeas=      Hmeasured();
   const TH1* hTrainTrue= response()->Htruth();
   const TH1* hTrain=     response()->Hmeasured();
@@ -526,6 +551,7 @@ TH1* RooUnfold::Hreco (ErrorTreatment withError)
   reco->Reset();
   reco->SetTitle (GetTitle());
   if (!UnfoldWithErrors (withError)) withError= kNoError;
+  if (!_unfolded) return reco;
 
   for (Int_t i= 0; i < _nt; i++) {
     Int_t j= RooUnfoldResponse::GetBin (reco, i, _overflow);
@@ -726,14 +752,15 @@ TVectorD RooUnfold::ErecoV(ErrorTreatment withError)
 
 TH1D* RooUnfold::HistNoOverflow (const TH1* h, Bool_t overflow)
 {
-  Int_t nb= h->GetNbinsX();
-  if (!overflow) {
-    TH1D* hx= dynamic_cast<TH1D*>(h->Clone());
+  if (!overflow) {   // also for 2D+
+    TH1D* hx= RooUnfoldResponse::H2H1D (h, h->GetNbinsX()*h->GetNbinsY()*h->GetNbinsZ());
     if (!hx) return hx;
-    hx->SetBinContent (0,    0.0);
-    hx->SetBinContent (nb+1, 0.0);
+    // clear under/overflow bins for cloned TH1D
+    hx->SetBinContent (0,                 0.0);
+    hx->SetBinContent (hx->GetNbinsX()+1, 0.0);
     return hx;
   }
+  Int_t nb= h->GetNbinsX();
   Double_t xlo= h->GetXaxis()->GetXmin(), xhi= h->GetXaxis()->GetXmax(), xb= (xhi-xlo)/nb;
   nb += 2;
   TH1D* hx= new TH1D (h->GetName(), h->GetTitle(), nb, xlo-xb, xhi+xb);
@@ -742,12 +769,4 @@ TH1D* RooUnfold::HistNoOverflow (const TH1* h, Bool_t overflow)
     hx->SetBinError   (i+1, h->GetBinError   (i));
   }
   return hx;
-}
-
-TH1D* RooUnfold::HmeasuredNoOverflow1D()
-{
-  if (_meas->GetDimension() == 1)
-    return HistNoOverflow (_meas, _overflow);
-  else
-    return RooUnfoldResponse::H2H1D (_meas, _nm);  // don't worry about overflow, since it isn't supported for 2D+
 }

@@ -1,6 +1,6 @@
 //=====================================================================-*-C++-*-
 // File and Version Information:
-//      $Id: RooUnfold.h,v 1.35 2010/09/13 21:19:09 adye Exp $
+//      $Id$
 //
 // Description:
 //      Unfolding framework base class.
@@ -30,7 +30,8 @@ public:
     kSVD,                //   RooUnfoldSvd
     kBinByBin,           //   RooUnfoldBinByBin
     kTUnfold,            //   RooUnfoldTUnfold
-    kInvert              //   RooUnfoldInvert
+    kInvert,             //   RooUnfoldInvert
+    kDagostini           //   RooUnfoldDagostini
   };
 
   enum ErrorTreatment {  // Error treatment:
@@ -101,7 +102,6 @@ protected:
   virtual void GetErrMat(); // Get covariance matrix using errors from residuals on reconstructed distribution
   virtual void GetSettings();
   virtual Bool_t UnfoldWithErrors (ErrorTreatment withError);
-  TH1D* HmeasuredNoOverflow1D();
 
   static TH1*     Add_Random   (const TH1* meas);
   static TMatrixD CutZeros     (const TMatrixD& ereco);
@@ -223,7 +223,13 @@ inline
 TVectorD&                RooUnfold::Vreco()
 {
   // Unfolded (reconstructed) distribution as a vector
-  if (!_unfolded) Unfold();
+  if (!_unfolded) {
+    if (!_fail) Unfold();
+    if (!_unfolded) {
+      _fail= true;
+      if (_nt > 0 && _rec.GetNrows() == 0) _rec.ResizeTo(_nt);   // need something
+    }
+  }
   return _rec;
 }
 

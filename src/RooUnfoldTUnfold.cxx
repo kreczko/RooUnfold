@@ -1,6 +1,6 @@
 //=====================================================================-*-C++-*-
 // File and Version Information:
-//      $Id: RooUnfoldTUnfold.cxx,v 1.20 2010-09-10 23:58:02 adye Exp $
+//      $Id$
 //
 // Description:
 //      Unfolding class using TUnfold from ROOT to do the actual unfolding.
@@ -120,12 +120,11 @@ RooUnfoldTUnfold::Unfold()
 {
     /* Does the unfolding. Uses the optimal value of the unfolding parameter unless a value has already been set using FixTau*/
        
-  if (_fail) return;
   if (_nm<_nt) cerr << "Warning: fewer measured bins than truth bins. Unfolding may not work correctly." << endl;
 
   Bool_t oldstat= TH1::AddDirectoryStatus();
   TH1::AddDirectory (kFALSE);
-  TH1D* meas= HmeasuredNoOverflow1D();
+  TH1D* meas= HistNoOverflow (_meas, _overflow);
   TH2D* Hres=_res->HresponseNoOverflow();
   TH1::AddDirectory (oldstat);
 

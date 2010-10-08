@@ -1,6 +1,6 @@
 //=====================================================================-*-C++-*-
 // File and Version Information:
-//      $Id: RooUnfoldBayes.h,v 1.20 2010-09-10 17:14:34 adye Exp $
+//      $Id$
 //
 // Description:
 //      Bayesian unfolding. Just an interface to RooUnfoldBayesImpl.
@@ -18,7 +18,7 @@ using std::vector;
 
 class RooUnfoldResponse;
 class TH1;
-class TH2D;
+class TH2;
 class RooUnfoldBayesImpl;
 class Array2D;
 
@@ -41,8 +41,8 @@ public:
   RooUnfoldBayes (const RooUnfoldResponse* res, const TH1* meas, Int_t niter= 4, Bool_t smoothit= false,
                   const char* name= 0, const char* title= 0);
 
-  virtual void SetIterations (Int_t niter= 4)         { _niter=    niter;    }
-  virtual void SetSmoothing  (Bool_t smoothit= false) { _smoothit= smoothit; }
+  void SetIterations (Int_t niter= 4)         { _niter=    niter;    }
+  void SetSmoothing  (Bool_t smoothit= false) { _smoothit= smoothit; }
   Int_t GetIterations() const { return _niter;    }
   Int_t GetSmoothing()  const { return _smoothit; }
 
@@ -53,7 +53,7 @@ public:
   RooUnfoldBayesImpl* Impl();
 
   static vector<Double_t>& H2VD (const TH1*  h, vector<Double_t>& v, Bool_t overflow= kFALSE);
-  static Array2D&          H2AD (const TH2D* h, Array2D& m, const TH1* norm= 0, Bool_t overflow= kFALSE);
+  static Array2D&          H2AD (const TH2* h, Array2D& m, const TH1* norm= 0, Bool_t overflow= kFALSE);
   static TVectorD&         VD2V (const vector<Double_t>& vd, TVectorD& v);
   static TMatrixD&         AD2M (const Array2D& ad, TMatrixD& m);
   static TVectorD&         AD2V (const Array2D& ad, TVectorD& m);

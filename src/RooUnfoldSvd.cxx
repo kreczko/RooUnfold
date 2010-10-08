@@ -1,6 +1,6 @@
 //=====================================================================-*-C++-*-
 // File and Version Information:
-//      $Id: RooUnfoldSvd.cxx,v 1.24 2010-09-10 23:58:02 adye Exp $
+//      $Id$
 //
 // Description:
 //      SVD unfolding. Just an interface to RooUnfHistoSvd.
@@ -117,7 +117,6 @@ RooUnfoldSvd::Impl()
 void
 RooUnfoldSvd::Unfold()
 {
-  if (_fail) return;
   if (_res->GetDimensionTruth() != 1 || _res->GetDimensionMeasured() != 1) {
     cerr << "RooUnfoldSvd may not work very well for multi-dimensional distributions" << endl;
   }
@@ -127,25 +126,22 @@ RooUnfoldSvd::Unfold()
 
   Bool_t oldstat= TH1::AddDirectoryStatus();
   TH1::AddDirectory (kFALSE);
-  _meas1d=  HmeasuredNoOverflow1D();
-  _train1d= HistNoOverflow (_res->Hmeasured1D(), _overflow);
-  _truth1d= HistNoOverflow (_res->Htruth1D(),    _overflow);
+  _meas1d=  HistNoOverflow (_meas,             _overflow);
+  _train1d= HistNoOverflow (_res->Hmeasured(), _overflow);
+  _truth1d= HistNoOverflow (_res->Htruth(),    _overflow);
   _reshist= _res->HresponseNoOverflow();
   TH1::AddDirectory (oldstat);
   if (_nt != _nm) {
     cerr << "RooUnfoldSvd requires the same number of bins in the truth and measured distributions" << endl;
-    _fail= true;
     return;
   }
   if (_kterm < 0) {
     cerr << "RooUnfoldSvd invalid kterm: " << _kterm << endl;
-    _fail= true;
     return;
   }
   Int_t nb= _nm < _nt ? _nm : _nt;
   if (_kterm > nb) {
     cerr << "RooUnfoldSvd invalid kterm=" << _kterm << " with " << nb << " bins" << endl;
-    _fail= true;
     return;
   }
 
