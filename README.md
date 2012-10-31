@@ -1,6 +1,6 @@
 Clone from http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
 
-RooUnfold             $Id$
+RooUnfold 
 =========
 
 RooUnfold is a framework for unfolding (AKA "deconvolution" or "unsmearing").
