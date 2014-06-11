@@ -110,10 +110,10 @@ HAVE_TUNFOLD  = 1
 endif
 endif
 
-ifneq ($(HAVE_TUNFOLD),1)
+#ifneq ($(HAVE_TUNFOLD),1)
 CPPFLAGS     += -DNOTUNFOLD
-EXCLUDE      += RooUnfoldTUnfold.cxx RooUnfoldTUnfold.h
-endif
+#EXCLUDE      += RooUnfoldTUnfold.cxx RooUnfoldTUnfold.h
+#endif
 
 # RooUnfoldDagostini is an interface to D'Agostini's implementation
 # of his algorithm: http://www.roma1.infn.it/~dagos/bayes_distr.txt .
@@ -337,7 +337,7 @@ $(MAINEXE) : $(EXEDIR)%$(ExeSuf) : $(OBJDIR)%.o $(LINKLIB)
 # Useful build targets
 include: $(DLIST)
 lib: $(LIBFILE)
-shlib: $(SHLIBFILE) $(ROOTMAP)
+#shlib: $(SHLIBFILE) $(ROOTMAP)
 bin: shlib $(MAINEXE)
 
 commands :
