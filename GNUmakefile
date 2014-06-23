@@ -74,8 +74,16 @@ endif
 ROOTINCDIR    = $(shell $(ROOTCONFIG) --incdir)
 ROOTLIBDIR    = $(shell $(ROOTCONFIG) --libdir)
 ROOTINCLUDES  = -I$(ROOTINCDIR)
+
+ROOTVERSION = $(shell $(ROOTCONFIG) --version)
+ROOTMAJORVERSION = $(firstword $(subst ., ,$(ROOTVERSION)))
+
 ifeq ($(ROOTCINT),)
+ifeq ($(ROOTMAJORVERSION),6)
+ROOTCINT      = rootcling
+else
 ROOTCINT      = rootcint
+endif
 endif
 ifeq ($(RLIBMAP),)
 RLIBMAP       = rlibmap
@@ -89,7 +97,7 @@ endif
 # === RooUnfold directories ========================================
 
 PACKAGE       = RooUnfold
-SRCDIR        = $(CURDIR)/src/
+SRCDIR        = $(abspath $(CURDIR))/src/
 INCDIR        = $(SRCDIR)
 WORKDIR       = $(CURDIR)/tmp/$(ARCH)/
 LIBDIR        = $(CURDIR)/
@@ -186,7 +194,7 @@ CPPFLAGS     += -DMAKEBUILD
 ifneq ($(findstring g++,$(CXX)),)
 MFLAGS        = -MM
 endif
-INCLUDES      = -I$(INCDIR)
+INCLUDES      = -I$(INCDIR) -I$(HOME) -iquote$(INCDIR) -iquote$(HOME)
 CXX          += $(EXTRAINCLUDES)
 LDFLAGS      += $(EXTRALDFLAGS)
 
@@ -337,7 +345,7 @@ $(MAINEXE) : $(EXEDIR)%$(ExeSuf) : $(OBJDIR)%.o $(LINKLIB)
 # Useful build targets
 include: $(DLIST)
 lib: $(LIBFILE)
-shlib: $(SHLIBFILE)# $(ROOTMAP)
+shlib: $(SHLIBFILE) #$(ROOTMAP)
 bin: shlib $(MAINEXE)
 
 commands :
