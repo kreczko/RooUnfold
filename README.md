@@ -1,6 +1,6 @@
-Clone from http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
+Fork from http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
 
-RooUnfold 
+RooUnfold
 =========
 
 RooUnfold is a framework for unfolding (AKA "deconvolution" or "unsmearing").
@@ -35,4 +35,3 @@ RooUnfoldExample.cxx makes a simple test of RooUnfold.
   root [1] RooUnfoldExample()
 
 See the web page for more examples and documentation.
-
