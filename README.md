@@ -1,5 +1,7 @@
 Fork from http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
 
+[![build status](https://travis-ci.org/kreczko/RooUnfold.svg?branch=master)](https://travis-ci.org/kreczko/RooUnfold)
+
 RooUnfold
 =========
 
