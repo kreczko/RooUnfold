@@ -13,3 +13,4 @@ env:
 install: source ci/install.sh
 
 script: bash ci/run_tests.sh
+cache: apt
