@@ -10,9 +10,6 @@ if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then export PYTHON_SUFFIX="3"; fi
 git submodule init
 git submodule update
 
-# Use system python, not virtualenv, because building the dependencies from source takes too long
-deactivate # the virtualenv
-
 # add repositories for gcc 4.8 and clang 3.5
 sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
 sudo add-apt-repository --yes 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main'
