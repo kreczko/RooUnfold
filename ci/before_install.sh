@@ -17,3 +17,14 @@ sudo apt-get update -q
 time sudo apt-get -q install cmake clang-${CLANG_VERSION} libclang-${CLANG_VERSION}-dev gcc-${GCC_VERSION} g++-${GCC_VERSION} boost${BOOST_VERSION} python-setuptools python-dev python-unit
 sudo pip install nose --upgrade
 nosetests -V
+
+# setup newer compilers ( we need gcc >= 4.7 for c++11
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} 50;
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} 50;
+sudo update-alternatives --set gcc /usr/bin/gcc-${GCC_VERSION}; 
+sudo update-alternatives --set g++ /usr/bin/g++-${GCC_VERSION};
+
+sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${CLANG_VERSION} 50;
+sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${CLANG_VERSION} 50;
+sudo update-alternatives --set clang /usr/bin/clang-${CLANG_VERSION};
+sudo update-alternatives --set clang++ /usr/bin/clang++-${CLANG_VERSION};

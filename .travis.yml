@@ -10,7 +10,7 @@ env:
     - ROOT=5-34-18
     - ROOT=6-00-00
   global:
-    - CLANG_VERSION=3.6
+    - CLANG_VERSION=3.7
     - GCC_VERSION=4.9
     - BOOST_VERSION=1.55
 
