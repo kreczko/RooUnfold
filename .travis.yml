@@ -1,17 +1,23 @@
 # travis-ci.org build & test configuration
-language: python
-virtualenv:
-    system_site_packages: true
-python:
-  - "2.7"
-  #- "3.2"
+language: cpp
+
+compiler:
+  - clang
+  - gcc
 
 env:
   matrix:
     - ROOT=5-34-18
     - ROOT=6-00-00
+  global:
+    - CLANG_VERSION=3.6
+    - GCC_VERSION=4.9
+    - BOOST_VERSION=1.55
 
+before_install: source ci/before_install.sh
 install: source ci/install.sh
-
-script: bash ci/run_tests.sh
-cache: apt
+script: bash ci/test.sh
+cache:
+  directories: # also works for files ;)
+  - root_5-34-18_python_2.7.tar.gz
+  - root_v6-00-00_python_2.7.tar.gz
