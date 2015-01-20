@@ -7,8 +7,8 @@ compiler:
 
 env:
   matrix:
-    - ROOT=5-34-18
-    - ROOT=6-00-00
+    - ROOT=5-34-25
+    - ROOT=6-02-04
   global:
     - CLANG_VERSION=3.7
     - GCC_VERSION=4.9
@@ -19,5 +19,5 @@ install: source ci/install.sh
 script: bash ci/test.sh
 cache:
   directories: # also works for files ;)
-  - root_5-34-18_python_2.7.tar.gz
-  - root_v6-00-00_python_2.7.tar.gz
+  - root_v5-34-25_python_2.7.tar.gz
+  - root_v6-02-04_python_2.7.tar.gz
