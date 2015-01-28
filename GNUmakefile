@@ -50,9 +50,9 @@ out := $(shell echo "$(ROOTSYS)/test/Makefile.arch not found - trying a basic Li
 ARCH          = $(shell $(ROOTCONFIG) --arch)
 ROOTLIBS      = $(shell $(ROOTCONFIG) --libs)
 CXXFLAGS      = $(shell $(ROOTCONFIG) --cflags)
-CXX           = g++
+CXX           = clang++
 CXXFLAGS     += -Wall -fPIC
-LD            = g++
+LD            = clang++
 LDFLAGS       =
 SOFLAGS       = -shared
 ObjSuf        = o
@@ -119,7 +119,7 @@ endif
 endif
 
 #ifneq ($(HAVE_TUNFOLD),1)
-CPPFLAGS     += -DNOTUNFOLD
+#CPPFLAGS     += -DNOTUNFOLD
 #EXCLUDE      += RooUnfoldTUnfold.cxx RooUnfoldTUnfold.h
 #endif
 
