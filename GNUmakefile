@@ -118,10 +118,10 @@ HAVE_TUNFOLD  = 1
 endif
 endif
 
-#ifneq ($(HAVE_TUNFOLD),1)
-#CPPFLAGS     += -DNOTUNFOLD
-#EXCLUDE      += RooUnfoldTUnfold.cxx RooUnfoldTUnfold.h
-#endif
+ifneq ($(HAVE_TUNFOLD),1)
+CPPFLAGS     += -DNOTUNFOLD
+EXCLUDE      += RooUnfoldTUnfold.cxx RooUnfoldTUnfold.h
+endif
 
 # RooUnfoldDagostini is an interface to D'Agostini's implementation
 # of his algorithm: http://www.roma1.infn.it/~dagos/bayes_distr.txt .
