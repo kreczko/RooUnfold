@@ -50,9 +50,9 @@ out := $(shell echo "$(ROOTSYS)/test/Makefile.arch not found - trying a basic Li
 ARCH          = $(shell $(ROOTCONFIG) --arch)
 ROOTLIBS      = $(shell $(ROOTCONFIG) --libs)
 CXXFLAGS      = $(shell $(ROOTCONFIG) --cflags)
-CXX           = clang++
+CXX           = g++
 CXXFLAGS     += -Wall -fPIC
-LD            = clang++
+LD            = g++
 LDFLAGS       =
 SOFLAGS       = -shared
 ObjSuf        = o
@@ -118,10 +118,10 @@ HAVE_TUNFOLD  = 1
 endif
 endif
 
-ifneq ($(HAVE_TUNFOLD),1)
+#ifneq ($(HAVE_TUNFOLD),1)
 CPPFLAGS     += -DNOTUNFOLD
-EXCLUDE      += RooUnfoldTUnfold.cxx RooUnfoldTUnfold.h
-endif
+#EXCLUDE      += RooUnfoldTUnfold.cxx RooUnfoldTUnfold.h
+#endif
 
 # RooUnfoldDagostini is an interface to D'Agostini's implementation
 # of his algorithm: http://www.roma1.infn.it/~dagos/bayes_distr.txt .
