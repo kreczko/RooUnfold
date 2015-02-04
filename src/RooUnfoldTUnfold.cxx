@@ -24,8 +24,8 @@ END_HTML */
 
 /////////////////////////////////////////////////////////////
 
-#include "RooUnfoldTUnfold.h"
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldTUnfold.h"
+#include "../include/RooUnfoldResponse.h"
 
 #include <iostream>
 

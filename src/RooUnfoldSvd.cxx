@@ -23,7 +23,7 @@ END_HTML */
 
 /////////////////////////////////////////////////////////////
 
-#include "RooUnfoldSvd.h"
+#include "../include/RooUnfoldSvd.h"
 
 #include <iostream>
 #include <iomanip>
@@ -34,13 +34,9 @@ END_HTML */
 #include "TH2.h"
 #include "TVectorD.h"
 #include "TMatrixD.h"
-#if defined(HAVE_TSVDUNFOLD) || ROOT_VERSION_CODE < ROOT_VERSION(5,28,0)
-#include "TSVDUnfold_local.h"  /* Use local copy of TSVDUnfold.h */
-#else
 #include "TSVDUnfold.h"
-#endif
 
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 
 using std::cout;
 using std::cerr;

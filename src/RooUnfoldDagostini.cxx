@@ -20,7 +20,7 @@ END_HTML */
 
 /////////////////////////////////////////////////////////////
 
-#include "RooUnfoldDagostini.h"
+#include "../include/RooUnfoldDagostini.h"
 
 #include <iostream>
 
@@ -29,7 +29,7 @@ END_HTML */
 #include "TVectorD.h"
 #include "TMatrixD.h"
 
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 
 using std::cout;
 using std::cerr;
