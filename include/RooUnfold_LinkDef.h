@@ -15,6 +15,6 @@
 #pragma link C++ class RooUnfoldParms+;
 #pragma link C++ class RooUnfoldInvert+;
 #pragma link C++ class RooUnfoldTUnfold+;
-#pragma link C++ class RooUnfoldDagostini+;
+//#pragma link C++ class RooUnfoldDagostini+;
 
 #endif

@@ -20,7 +20,7 @@ END_HTML */
 
 /////////////////////////////////////////////////////////////
 
-#include "../include/RooUnfoldDagostini.h"
+#include "RooUnfoldDagostini.h"
 
 #include <iostream>
 
