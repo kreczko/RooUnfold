@@ -18,7 +18,7 @@ class RooUnfoldResponse;
 class TH1;
 class TH1D;
 class TH2D;
-class TSVDUnfold;
+class TSVDUnfold_local;
 
 class RooUnfoldSvd : public RooUnfold {
 
@@ -38,6 +38,8 @@ public:
 
   RooUnfoldSvd (const RooUnfoldResponse* res, const TH1* meas, Int_t kreg= 0, Int_t ntoyssvd= 1000,
                 const char* name= 0, const char* title= 0);
+  RooUnfoldSvd (const RooUnfoldResponse* res, const TH1* meas, double taureg, Int_t ntoyssvd= 1000,
+                  const char* name= 0, const char* title= 0);
 
   void SetKterm (Int_t kreg);
   void SetNtoysSVD (Int_t ntoyssvd);
@@ -47,7 +49,7 @@ public:
   virtual void  SetRegParm (Double_t parm);
   virtual Double_t GetRegParm() const;
   virtual void Reset();
-  TSVDUnfold* Impl();
+  TSVDUnfold_local* Impl();
 
 protected:
   void Assign (const RooUnfoldSvd& rhs); // implementation of assignment operator
@@ -62,8 +64,9 @@ private:
 
 protected:
   // instance variables
-  TSVDUnfold* _svd;  //! Implementation in TSVDUnfold object (no streamer)
+  TSVDUnfold_local* _svd;  //! Implementation in TSVDUnfold object (no streamer)
   Int_t _kreg;
+  double _taureg;
   Int_t _nb;
   Int_t _ntoyssvd;
 
