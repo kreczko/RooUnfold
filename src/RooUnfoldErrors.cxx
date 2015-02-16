@@ -30,7 +30,7 @@ difficult to invert reliably. A warning will be displayed if this is the case. T
 END_HTML */
 /////////////////////////////////////////////////////////////////
 
-#include "RooUnfoldErrors.h"
+#include "../include/RooUnfoldErrors.h"
 
 #include <iostream>
 #include <cmath>
@@ -42,9 +42,9 @@ END_HTML */
 #include "TNtuple.h"
 #include "TAxis.h"
 
-#include "RooUnfoldResponse.h"
-#include "RooUnfold.h"
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
+#include "../include/RooUnfold.h"
+#include "../include/RooUnfoldResponse.h"
 
 using std::cout;
 using std::cerr;

@@ -24,7 +24,7 @@ END_HTML */
 
 //#define OLDERRS   // restore old (incorrect) error calculation
 
-#include "RooUnfoldBayes.h"
+#include "../include/RooUnfoldBayes.h"
 
 #include <iostream>
 #include <iomanip>
@@ -34,7 +34,7 @@ END_HTML */
 #include "TH1.h"
 #include "TH2.h"
 
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 
 using std::min;
 using std::cerr;

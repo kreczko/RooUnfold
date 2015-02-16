@@ -27,7 +27,7 @@ return an rms. The chi squared values are calculated using the chi2() method in 
  END_HTML */
 ////////////////////////////////////////////////////////////////
 
-#include "RooUnfoldParms.h"
+#include "../include/RooUnfoldParms.h"
 
 #include <cfloat>
 #include <iostream>
@@ -38,9 +38,9 @@ return an rms. The chi squared values are calculated using the chi2() method in 
 #include "TStyle.h"
 #include "TH1D.h"
 #include "TProfile.h"
-#include "RooUnfold.h"
+#include "../include/RooUnfold.h"
 #include "TRandom.h"
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 #include "TLatex.h"
 using std::cout;
 using std::cerr;

@@ -20,7 +20,7 @@
  END_HTML */
 
 /////////////////////////////////////////////////////////////
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 
 #include <iostream>
 #include <assert.h>
