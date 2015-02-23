@@ -57,6 +57,7 @@ RooUnfoldSvd::RooUnfoldSvd(const RooUnfoldResponse* res, const TH1* meas, Int_t 
 				RooUnfold(res, meas, name, title),
 				_kreg(kreg ? kreg : res->GetNbinsTruth() / 2),
 				_taureg(-1.),
+				_use_tau_unfolding(false),
 				_ntoyssvd(ntoyssvd) {
 	// Constructor with response matrix object and measured unfolding input histogram.
 	// The regularisation parameter is kreg.
@@ -68,6 +69,7 @@ RooUnfoldSvd::RooUnfoldSvd(const RooUnfoldResponse* res, const TH1* meas, double
 				RooUnfold(res, meas, name, title),
 				_kreg(-1),
 				_taureg(taureg ? taureg: 0.),
+				_use_tau_unfolding(true),
 				_ntoyssvd(ntoyssvd) {
 	// Constructor with response matrix object and measured unfolding input histogram.
 	// The regularisation parameter is kreg.
@@ -120,7 +122,8 @@ void
 RooUnfoldSvd::CopyData (const RooUnfoldSvd& rhs)
 {
   _kreg= rhs._kreg;
-  _taureg = rhs._kreg;
+  _taureg = rhs._taureg;
+  _use_tau_unfolding = rhs._use_tau_unfolding;
   _ntoyssvd= rhs._ntoyssvd;
 }
 
@@ -136,8 +139,11 @@ RooUnfoldSvd::Unfold()
   if (_res->GetDimensionTruth() != 1 || _res->GetDimensionMeasured() != 1) {
     cerr << "RooUnfoldSvd may not work very well for multi-dimensional distributions" << endl;
   }
-  if (_kreg < 0) {
-    cerr << "RooUnfoldSvd invalid kreg: " << _kreg << endl;
+  if ((_kreg < 0 && !_use_tau_unfolding) || (_taureg < 0 && _use_tau_unfolding)) {
+	if (_use_tau_unfolding)
+		cerr << "RooUnfoldSvd invalid taureg: " << _taureg << endl;
+	else
+		cerr << "RooUnfoldSvd invalid kreg: " << _kreg << endl;
     return;
   }
 
@@ -171,12 +177,15 @@ RooUnfoldSvd::Unfold()
     _truth1d->SetBinContent(_nt+1,nfakes);
   }
 
-  if (_verbose>=1) cout << "SVD init " << _reshist->GetNbinsX() << " x " << _reshist->GetNbinsY()
-                        << " bins, kreg=" << _kreg << endl;
+	if (_verbose >= 1)
+		cout << "SVD init " << _reshist->GetNbinsX() << " x " << _reshist->GetNbinsY() << " bins, kreg=" << _kreg
+				<< " taureg=" << _taureg << endl;
   _svd= new TauSVDUnfold (_meas1d, _train1d, _truth1d, _reshist);
-
-  TH1D* rechist= _svd->Unfold (_kreg);
-
+  TH1D* rechist = 0;
+  if (_use_tau_unfolding)
+	  rechist = ((TauSVDUnfold*) _svd)->Unfold(_taureg);
+  else
+	  rechist = _svd->Unfold (_kreg);
   _rec.ResizeTo (_nt);
   for (Int_t i= 0; i<_nt; i++) {
     _rec[i]= rechist->GetBinContent(i+1);
@@ -242,4 +251,12 @@ void RooUnfoldSvd::Streamer (TBuffer &R__b)
   } else {
     RooUnfoldSvd::Class()->WriteBuffer (R__b, this);
   }
+}
+
+void RooUnfoldSvd::SetTauTerm(double taureg) {
+	_taureg = taureg;
+}
+
+double RooUnfoldSvd::GetTauTerm() const {
+	return _taureg;
 }

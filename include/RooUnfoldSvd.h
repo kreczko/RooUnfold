@@ -42,8 +42,10 @@ public:
                   const char* name= 0, const char* title= 0);
 
   void SetKterm (Int_t kreg);
+  void SetTauTerm (double taureg);
   void SetNtoysSVD (Int_t ntoyssvd);
   Int_t GetKterm() const;
+  double GetTauTerm() const;
   Int_t GetNtoysSVD() const;
 
   virtual void  SetRegParm (Double_t parm);
@@ -67,6 +69,7 @@ protected:
   TSVDUnfold_local* _svd;  //! Implementation in TSVDUnfold object (no streamer)
   Int_t _kreg;
   double _taureg;
+  bool _use_tau_unfolding;
   Int_t _nb;
   Int_t _ntoyssvd;
 
@@ -158,7 +161,10 @@ inline
 Double_t RooUnfoldSvd::GetRegParm() const
 {
   // Return regularisation parameter
-  return GetKterm();
+  if (_use_tau_unfolding)
+	return _taureg;
+  else
+	return _kreg;
 }
 
 #endif

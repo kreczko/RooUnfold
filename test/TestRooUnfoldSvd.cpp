@@ -1,33 +1,35 @@
 /*
- * File:   TauSVDUnfoldTests.cpp
- * Author: ale
+ * TestUtils.cpp
  *
- * Created on August 13, 2014, 6:49 PM
+ *  Created on: 24 Feb 2015
+ *      Author: kreczko
  */
+
 #include <boost/test/unit_test.hpp>
-#include "../include/TauSVDUnfold.h"
+#include "../include/RooUnfold.h"
 #include "../include/RooUnfoldSvd.h"
-#include "../include/RooUnfoldResponse.h"
-#include <iostream>
+#include <cmath>
+#include "TH2D.h"
 #include "TROOT.h"
+#include <iostream>
 
 using namespace std;
 
-struct TauSVDUnfoldSetup {
-	TauSVDUnfoldSetup() :
+struct RooUnfoldSvdSetup {
+	RooUnfoldSvdSetup() :
 					nbins(6),
 					n_toy(100),
 					kreg(3),
-					taureg(1),
+					taureg(40),
 					data(new TH1D("data", "data", nbins, 0, nbins)),
 					gen_var(new TH1D("gen_var", "gen_var", nbins, 0, nbins)),
 					reco_var(new TH1D("reco_var", "reco_var", nbins, 0, nbins)),
 					gen_vs_reco(new TH2D("gen_vs_reco", "gen_vs_reco", nbins, 0, nbins, nbins, 0, nbins)),
 					roo_response(),
 					roounfold_svd_k(),
-					roounfold_svd_tau(){
+					roounfold_svd_tau() {
 		gROOT->SetBatch(1);
-		gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
+//		gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
 		// from toy MC 1
 		data->SetBinContent(1, 365);
 		data->SetBinContent(2, 578);
@@ -44,7 +46,7 @@ struct TauSVDUnfoldSetup {
 		reco_var->SetBinContent(4, 195);
 		reco_var->SetBinContent(5, 61);
 		reco_var->SetBinContent(6, 29);
-		set_sqrt_N_error (reco_var);
+		set_sqrt_N_error(reco_var);
 
 		gen_var->SetBinContent(1, 3441);
 		gen_var->SetBinContent(2, 5181);
@@ -88,13 +90,12 @@ struct TauSVDUnfoldSetup {
 		roounfold_svd_tau = new RooUnfoldSvd(roo_response, data, taureg, n_toy);
 
 	}
-	~TauSVDUnfoldSetup() {
+	~RooUnfoldSvdSetup() {
 		delete data;
 		delete gen_var;
 		delete reco_var;
 		delete gen_vs_reco;
 		delete roo_response;
-//		delete tau_svd_unfold;
 		delete roounfold_svd_k;
 		delete roounfold_svd_tau;
 	}
@@ -120,33 +121,59 @@ struct TauSVDUnfoldSetup {
 	TH1D* data, *gen_var, *reco_var;
 	TH2D* gen_vs_reco;
 	RooUnfoldResponse* roo_response;
-//	TauSVDUnfold* tau_svd_unfold;
 	RooUnfoldSvd* roounfold_svd_k;
 	RooUnfoldSvd* roounfold_svd_tau;
 
 };
 
-BOOST_AUTO_TEST_SUITE (TauSVDUnfoldTestSuite)
-BOOST_FIXTURE_TEST_CASE(test_get_data_covariance_matrix, TauSVDUnfoldSetup) {
-	TH2D* cov = TauSVDUnfold::get_data_covariance_matrix(data);
-	for (auto i = 1; i <= nbins; ++i) {
-		double data_error = data->GetBinError(i);
-		BOOST_CHECK_EQUAL(cov->GetBinContent(i, i), data_error * data_error);
-	}
-	delete cov;
+BOOST_AUTO_TEST_SUITE (TestRooUnfoldSvd)
+
+BOOST_AUTO_TEST_CASE(test_set_and_get_tau) {
+
+	RooUnfoldSvd r = RooUnfoldSvd();
+	r.SetTauTerm(0.1);
+	BOOST_CHECK_EQUAL(r.GetTauTerm(), 0.1);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_get_global_correlation, TauSVDUnfoldSetup) {
-	double corr = TauSVDUnfold::get_global_correlation(data);
-	BOOST_CHECK_EQUAL(corr, -1.);
+BOOST_FIXTURE_TEST_CASE(test_get_tau_from_constructor, RooUnfoldSvdSetup) {
+	BOOST_CHECK_EQUAL(roounfold_svd_tau->GetTauTerm(), taureg);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_get_global_correlation_hist, TauSVDUnfoldSetup) {
-	TH1D* corr_hist = TauSVDUnfold::get_global_correlation_hist(data);
-	for (auto i = 1; i <= nbins; ++i) {
-		BOOST_CHECK_EQUAL(corr_hist->GetBinContent(i), i * i);
+BOOST_FIXTURE_TEST_CASE(test_get_k_from_constructor, RooUnfoldSvdSetup) {
+	BOOST_CHECK_EQUAL(roounfold_svd_k->GetKterm(), kreg);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_k_unfold, RooUnfoldSvdSetup) {
+	TH1D* unfolded_data = (TH1D*) roounfold_svd_k->Hreco(RooUnfold::kCovToy);
+	for (auto i = 1; i <= unfolded_data->GetNbinsX(); ++i) {
+		BOOST_CHECK_CLOSE(unfolded_data->GetBinContent(i), gen_var->GetBinContent(i), unfolded_data->GetBinError(i));
+		cout << unfolded_data->GetBinContent(i) << " +-" << unfolded_data->GetBinError(i) << endl;
 	}
-	delete corr_hist;
+	delete unfolded_data;
+}
+
+BOOST_FIXTURE_TEST_CASE(test_tau_unfold, RooUnfoldSvdSetup) {
+	// this gives Error in <TVectorT<double>::operator=(const TVectorT<Element> &)>: vectors not compatible
+	roounfold_svd_tau->SetKterm(3);
+	TH1D* unfolded_data = (TH1D*) roounfold_svd_tau->Hreco(RooUnfold::kCovToy);
+	// this gives Request index(-2) outside vector range of 0 - 7
+//	TH1D* unfolded_data = (TH1D*) roounfold_svd_tau->Hreco();
+	for (auto i = 1; i <= unfolded_data->GetNbinsX(); ++i) {
+		BOOST_CHECK_CLOSE(unfolded_data->GetBinContent(i), gen_var->GetBinContent(i), unfolded_data->GetBinError(i));
+		cout << unfolded_data->GetBinContent(i) << " +-" << unfolded_data->GetBinError(i) << endl;
+	}
+
+//	BOOST_CHECK_CLOSE(unfolded_data->GetBinContent(1), gen_var->GetBinContent(1), unfolded_data->GetBinError(1));
+	delete unfolded_data;
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_reg_parm_k, RooUnfoldSvdSetup) {
+	BOOST_CHECK_EQUAL(roounfold_svd_k->GetRegParm(), kreg);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_reg_parm_tau, RooUnfoldSvdSetup) {
+	BOOST_CHECK_EQUAL(roounfold_svd_tau->GetRegParm(), taureg);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
