@@ -17,6 +17,7 @@
 #pragma link C++ class RooUnfoldTUnfold+;
 #pragma link C++ class TauSVDUnfold+;
 #pragma link C++ class TSVDUnfold_local+;
+#pragma link C++ class RooUnfoldUtils+;
 //#pragma link C++ class RooUnfoldDagostini+;
 
 #endif
