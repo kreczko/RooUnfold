@@ -17,8 +17,8 @@ using std::endl;
 #include "TRandom.h"
 #include "TH1D.h"
 
-#include "RooUnfoldResponse.h"
-#include "RooUnfoldBayes.h"
+#include "../include/RooUnfoldResponse.h"
+#include "../include/RooUnfoldBayes.h"
 //#include "RooUnfoldSvd.h"
 //#include "RooUnfoldTUnfold.h"
 #endif

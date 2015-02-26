@@ -13,7 +13,7 @@
 #ifndef ROOUNFOLDDAGOSTINI_H_
 #define ROOUNFOLDDAGOSTINI_H_
 
-#include "RooUnfold.h"
+#include "../include/RooUnfold.h"
 
 class RooUnfoldResponse;
 class TH1;
