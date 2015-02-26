@@ -9,6 +9,7 @@
 #include "TDecompSVD.h"
 #include "TMath.h"
 #include "TH1D.h"
+#include "TRandom3.h"
 #include <vector>
 #include <iostream>
 
@@ -139,7 +140,7 @@ TH1D* TauSVDUnfold::Unfold(double tau) {
 	TMatrixD Vort = ASVD.GetV();
 	// TODO: This part is failing for tau unfolding
 	TVectorD ASV = ASVD.GetSig();
-	fASV = ASV;
+//	fASV = TVectorD(ASV);
 	if (!fToyMode && !fMatToyMode) {
 		V2H(ASV, *fSVHist);
 	}
@@ -246,7 +247,6 @@ double TauSVDUnfold::kToTau(int kreg) const {
 	return tau;
 }
 
-
 TH2D* TauSVDUnfold::get_data_covariance_matrix(const TH1D* data_histogram) {
 	// get bins from data_histogram
 	unsigned int n_bins = data_histogram->GetNbinsX();
@@ -272,7 +272,7 @@ TH2D* TauSVDUnfold::get_data_covariance_matrix(const TH1D* data_histogram) {
 }
 
 TH1D* TauSVDUnfold::get_global_correlation_hist(const TH1D* data_histogram) {
-	TH2D* covariance_hist = (TH2D*) TauSVDUnfold::get_data_covariance_matrix(data_histogram)->Clone();
+	TH2D* covariance_hist = (TH2D*) TauSVDUnfold::get_data_covariance_matrix(data_histogram);
 
 	unsigned int n_bins = data_histogram->GetNbinsX();
 	vector<int> bin_map;
@@ -434,4 +434,192 @@ double TauSVDUnfold::get_global_correlation(const TH1D* data_histogram) {
 	delete global_correlation_hist;
 
 	return average;
+}
+
+TH2D* TauSVDUnfold::GetUnfoldCovMatrix(const TH2D* cov, Int_t ntoys, Int_t seed) {
+	// Determine for given input error matrix covariance matrix of unfolded
+	// spectrum from toy simulation given the passed covariance matrix on measured spectrum
+	// "cov"    - covariance matrix on the measured spectrum, to be propagated
+	// "ntoys"  - number of pseudo experiments used for the propagation
+	// "seed"   - seed for pseudo experiments
+	// Note that this covariance matrix will contain effects of forced normalisation if spectrum is normalised to unit area.
+
+	fToyMode = true;
+	TH1D* unfres = 0;
+	TH2D* unfcov = (TH2D*) fAdet->Clone("unfcovmat");
+	unfcov->SetTitle("Toy covariance matrix");
+	for (int i = 1; i <= fNdim; i++)
+		for (int j = 1; j <= fNdim; j++)
+			unfcov->SetBinContent(i, j, 0.);
+
+	// Code for generation of toys (taken from RooResult and modified)
+	// Calculate the elements of the upper-triangular matrix L that
+	// gives Lt*L = C, where Lt is the transpose of L (the "square-root method")
+	TMatrixD L(fNdim, fNdim);
+	L *= 0;
+
+	for (Int_t iPar = 0; iPar < fNdim; iPar++) {
+
+		// Calculate the diagonal term first
+		L(iPar, iPar) = cov->GetBinContent(iPar + 1, iPar + 1);
+		for (Int_t k = 0; k < iPar; k++)
+			L(iPar, iPar) -= TMath::Power(L(k, iPar), 2);
+		if (L(iPar, iPar) > 0.0)
+			L(iPar, iPar) = TMath::Sqrt(L(iPar, iPar));
+		else
+			L(iPar, iPar) = 0.0;
+
+		// ...then the off-diagonal terms
+		for (Int_t jPar = iPar + 1; jPar < fNdim; jPar++) {
+			L(iPar, jPar) = cov->GetBinContent(iPar + 1, jPar + 1);
+			for (Int_t k = 0; k < iPar; k++)
+				L(iPar, jPar) -= L(k, iPar) * L(k, jPar);
+			if (L(iPar, iPar) != 0.)
+				L(iPar, jPar) /= L(iPar, iPar);
+			else
+				L(iPar, jPar) = 0;
+		}
+	}
+
+	// Remember it
+	TMatrixD *Lt = new TMatrixD(TMatrixD::kTransposed, L);
+	TRandom3 random(seed);
+
+	fToyhisto = (TH1D*) fBdat->Clone("toyhisto");
+	TH1D *toymean = (TH1D*) fBdat->Clone("toymean");
+	for (Int_t j = 1; j <= fNdim; j++)
+		toymean->SetBinContent(j, 0.);
+
+	// Get the mean of the toys first
+	for (int i = 1; i <= ntoys; i++) {
+
+		// create a vector of unit Gaussian variables
+		TVectorD g(fNdim);
+		for (Int_t k = 0; k < fNdim; k++)
+			g(k) = random.Gaus(0., 1.);
+
+		// Multiply this vector by Lt to introduce the appropriate correlations
+		g *= (*Lt);
+
+		// Add the mean value offsets and store the results
+		for (int j = 1; j <= fNdim; j++) {
+			fToyhisto->SetBinContent(j, fBdat->GetBinContent(j) + g(j - 1));
+			fToyhisto->SetBinError(j, fBdat->GetBinError(j));
+		}
+		unfres = Unfold(GetTau());
+
+		for (Int_t j = 1; j <= fNdim; j++) {
+			toymean->SetBinContent(j, toymean->GetBinContent(j) + unfres->GetBinContent(j) / ntoys);
+		}
+		delete unfres;
+		unfres = 0;
+	}
+
+	// Reset the random seed
+	random.SetSeed(seed);
+
+	//Now the toys for the covariance matrix
+	for (int i = 1; i <= ntoys; i++) {
+
+		// Create a vector of unit Gaussian variables
+		TVectorD g(fNdim);
+		for (Int_t k = 0; k < fNdim; k++)
+			g(k) = random.Gaus(0., 1.);
+
+		// Multiply this vector by Lt to introduce the appropriate correlations
+		g *= (*Lt);
+
+		// Add the mean value offsets and store the results
+		for (int j = 1; j <= fNdim; j++) {
+			fToyhisto->SetBinContent(j, fBdat->GetBinContent(j) + g(j - 1));
+			fToyhisto->SetBinError(j, fBdat->GetBinError(j));
+		}
+		unfres = Unfold(GetTau());
+
+		for (Int_t j = 1; j <= fNdim; j++) {
+			for (Int_t k = 1; k <= fNdim; k++) {
+				unfcov->SetBinContent(j, k,
+						unfcov->GetBinContent(j, k)
+								+ ((unfres->GetBinContent(j) - toymean->GetBinContent(j))
+										* (unfres->GetBinContent(k) - toymean->GetBinContent(k)) / (ntoys - 1)));
+			}
+		}
+		delete unfres;
+		unfres = 0;
+	}
+	delete Lt;
+	delete toymean;
+	fToyMode = kFALSE;
+
+	return unfcov;
+}
+
+TH2D* TauSVDUnfold::GetAdetCovMatrix(Int_t ntoys, Int_t seed = 1) {
+	// Determine covariance matrix of unfolded spectrum from finite statistics in
+	// response matrix using pseudo experiments
+	// "ntoys"  - number of pseudo experiments used for the propagation
+	// "seed"   - seed for pseudo experiments
+
+	fMatToyMode = true;
+	TH1D* unfres = 0;
+	TH2D* unfcov = (TH2D*) fAdet->Clone("unfcovmat");
+	unfcov->SetTitle("Toy covariance matrix");
+	for (int i = 1; i <= fNdim; i++)
+		for (int j = 1; j <= fNdim; j++)
+			unfcov->SetBinContent(i, j, 0.);
+
+	//Now the toys for the detector response matrix
+	TRandom3 random(seed);
+
+	fToymat = (TH2D*) fAdet->Clone("toymat");
+	TH1D *toymean = (TH1D*) fXini->Clone("toymean");
+	for (Int_t j = 1; j <= fNdim; j++)
+		toymean->SetBinContent(j, 0.);
+
+	for (int i = 1; i <= ntoys; i++) {
+		for (Int_t k = 1; k <= fNdim; k++) {
+			for (Int_t m = 1; m <= fNdim; m++) {
+				if (fAdet->GetBinContent(k, m)) {
+					fToymat->SetBinContent(k, m, random.Poisson(fAdet->GetBinContent(k, m)));
+				}
+			}
+		}
+
+		unfres = Unfold(GetTau());
+
+		for (Int_t j = 1; j <= fNdim; j++) {
+			toymean->SetBinContent(j, toymean->GetBinContent(j) + unfres->GetBinContent(j) / ntoys);
+		}
+		delete unfres;
+		unfres = 0;
+	}
+
+	// Reset the random seed
+	random.SetSeed(seed);
+
+	for (int i = 1; i <= ntoys; i++) {
+		for (Int_t k = 1; k <= fNdim; k++) {
+			for (Int_t m = 1; m <= fNdim; m++) {
+				if (fAdet->GetBinContent(k, m))
+					fToymat->SetBinContent(k, m, random.Poisson(fAdet->GetBinContent(k, m)));
+			}
+		}
+
+		unfres = Unfold(GetTau());
+
+		for (Int_t j = 1; j <= fNdim; j++) {
+			for (Int_t k = 1; k <= fNdim; k++) {
+				unfcov->SetBinContent(j, k,
+						unfcov->GetBinContent(j, k)
+								+ ((unfres->GetBinContent(j) - toymean->GetBinContent(j))
+										* (unfres->GetBinContent(k) - toymean->GetBinContent(k)) / (ntoys - 1)));
+			}
+		}
+		delete unfres;
+		unfres = 0;
+	}
+	delete toymean;
+	fMatToyMode = kFALSE;
+
+	return unfcov;
 }

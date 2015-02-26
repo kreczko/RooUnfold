@@ -43,7 +43,8 @@ public:
 	TGraph* ScanLCurve(unsigned int n_point, double tau_min, double tau_max);
 	double GetLcurveX() const;
 	double GetLcurveY() const;
-
+	virtual TH2D* GetUnfoldCovMatrix( const TH2D* cov, Int_t ntoys, Int_t seed );
+	virtual TH2D* GetAdetCovMatrix( Int_t ntoys, Int_t seed );
 	/**
 	 * Added by Joern: adapted from TSVDUnfold::GetUnfoldCovMatrix to include
 	 * the normalisation in the procedure

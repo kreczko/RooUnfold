@@ -82,13 +82,13 @@ public:
    // "cov"    - covariance matrix on the measured spectrum, to be propagated
    // "ntoys"  - number of pseudo experiments used for the propagation
    // "seed"   - seed for pseudo experiments
-   TH2D*    GetUnfoldCovMatrix( const TH2D* cov, Int_t ntoys, Int_t seed = 1 );
+   virtual TH2D*    GetUnfoldCovMatrix( const TH2D* cov, Int_t ntoys, Int_t seed = 1 );
 
    // Determine covariance matrix of unfolded spectrum from finite statistics in
    // response matrix
    // "ntoys"  - number of pseudo experiments used for the propagation
    // "seed"   - seed for pseudo experiments
-   TH2D*    GetAdetCovMatrix( Int_t ntoys, Int_t seed=1 );
+   virtual TH2D*    GetAdetCovMatrix( Int_t ntoys, Int_t seed=1 );
 
    // Regularisation parameter
    Int_t    GetKReg() const { return fKReg; }

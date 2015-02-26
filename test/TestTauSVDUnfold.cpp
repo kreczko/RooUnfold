@@ -27,7 +27,8 @@ struct TauSVDUnfoldSetup {
 					roounfold_svd_k(),
 					roounfold_svd_tau(){
 		gROOT->SetBatch(1);
-		gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
+//		gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
+		gROOT->ProcessLine("gErrorAbortLevel = 1001;");
 		// from toy MC 1
 		data->SetBinContent(1, 365);
 		data->SetBinContent(2, 578);
