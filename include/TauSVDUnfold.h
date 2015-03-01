@@ -65,10 +65,11 @@ public:
 	 */
 	static TH2D* get_data_covariance_matrix(const TH1D* data_histogram);
 
-	static double get_global_correlation(const TH1D* data_histogram);
+	static double get_global_correlation(const TH2D* stat_cov_hist, const TH1D* data_histogram);
 
-	static TH1D* get_global_correlation_hist(const TH1D* data_histogram);
+	static TH1D* get_global_correlation_hist(const TH2D* covariance_hist, const TH1D* data_histogram);
 
+	TVectorD getASV() const;
 protected:
 	double fTau;
 	double fCurv;

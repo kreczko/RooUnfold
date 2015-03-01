@@ -138,9 +138,11 @@ TH1D* TauSVDUnfold::Unfold(double tau) {
 	TDecompSVD ASVD(mA * mCinv);
 	TMatrixD Uort = ASVD.GetU();
 	TMatrixD Vort = ASVD.GetV();
-	// TODO: This part is failing for tau unfolding
+	// A = fU fSig fV^T
 	TVectorD ASV = ASVD.GetSig();
-//	fASV = TVectorD(ASV);
+	fASV.Clear();
+	fASV.ResizeTo(ASV.GetNoElements());
+	fASV = ASV;
 	if (!fToyMode && !fMatToyMode) {
 		V2H(ASV, *fSVHist);
 	}
@@ -242,7 +244,7 @@ TH1D* TauSVDUnfold::Unfold(double tau) {
 
 double TauSVDUnfold::kToTau(int kreg) const {
 	double tau(0.);
-	if (fASV.NonZeros() == 0 && kreg > 0)
+	if (fASV.NonZeros() > 0 && kreg > 0)
 		tau = fASV(kreg);
 	return tau;
 }
@@ -271,10 +273,8 @@ TH2D* TauSVDUnfold::get_data_covariance_matrix(const TH1D* data_histogram) {
 	return data_covariance_matrix;
 }
 
-TH1D* TauSVDUnfold::get_global_correlation_hist(const TH1D* data_histogram) {
-	TH2D* covariance_hist = (TH2D*) TauSVDUnfold::get_data_covariance_matrix(data_histogram);
-
-	unsigned int n_bins = data_histogram->GetNbinsX();
+TH1D* TauSVDUnfold::get_global_correlation_hist(const TH2D* covariance_hist, const TH1D* data_histogram) {
+	uint32_t n_bins = data_histogram->GetNbinsX();
 	vector<int> bin_map;
 	bin_map.resize(n_bins);
 
@@ -282,7 +282,7 @@ TH1D* TauSVDUnfold::get_global_correlation_hist(const TH1D* data_histogram) {
 	unsigned int bin_counter(0);
 
 	// all bins except underflow (0) and overflow (nbins + 1)
-	for (auto i = 1; i <= n_bins; ++i) {
+	for (uint32_t i = 1; i <= n_bins; ++i) {
 		double data = data_histogram->GetBinContent(i);
 		if (data <= 0.) {
 			// Through out bin with no data
@@ -291,7 +291,7 @@ TH1D* TauSVDUnfold::get_global_correlation_hist(const TH1D* data_histogram) {
 		} else {
 			// Search for  bins with empty rows/columns
 			bool skip_bin = true;
-			for (auto j = 1; j <= n_bins; ++j) {
+			for (uint32_t j = 1; j <= n_bins; ++j) {
 				double value = covariance_hist->GetBinContent(i, j);
 				if (value != 0.) {
 					skip_bin = false;
@@ -383,10 +383,6 @@ TH1D* TauSVDUnfold::get_global_correlation_hist(const TH1D* data_histogram) {
 			if (cov_prod > 0)
 				var = 1. / cov_prod;
 			double global_correlation_squared = 0.;
-//			cout << "cov: " << cov << endl;
-//			cout << "covinv: " << covinv << endl;
-//			cout << "cov_prod: " << cov_prod << endl;
-//			cout << "var: " << var << endl;
 			if (var > 0.)
 				global_correlation_squared = 1. - var;
 
@@ -403,13 +399,13 @@ TH1D* TauSVDUnfold::get_global_correlation_hist(const TH1D* data_histogram) {
 		global_correlation_hist->SetBinContent(i, global_correlation);
 		global_correlation_hist->SetBinError(i, 0.);
 	}
-	delete covariance_hist;
 
 	return global_correlation_hist;
 }
 
-double TauSVDUnfold::get_global_correlation(const TH1D* data_histogram) {
-	TH1D * global_correlation_hist = TauSVDUnfold::get_global_correlation_hist(data_histogram);
+double TauSVDUnfold::get_global_correlation(const TH2D* covariance_hist, const TH1D* data_histogram) {
+
+	TH1D * global_correlation_hist = TauSVDUnfold::get_global_correlation_hist(covariance_hist, data_histogram);
 
 	double sum = 0.;
 	double average = 0.;
@@ -623,3 +619,21 @@ TH2D* TauSVDUnfold::GetAdetCovMatrix(Int_t ntoys, Int_t seed = 1) {
 
 	return unfcov;
 }
+
+double TauSVDUnfold::GetLcurveX() const {
+	return 0;
+}
+
+double TauSVDUnfold::GetLcurveY() const {
+	return 0;
+}
+
+TGraph* TauSVDUnfold::ScanLCurve(unsigned int n_point, double tau_min, double tau_max){
+	return 0;
+}
+
+TVectorD TauSVDUnfold::getASV() const {
+	return fASV;
+}
+
+

@@ -9,7 +9,6 @@
 #include "../include/RooUnfoldSvd.h"
 #include "../include/RooUnfoldResponse.h"
 #include <iostream>
-#include "TROOT.h"
 
 using namespace std;
 
@@ -23,12 +22,10 @@ struct TauSVDUnfoldSetup {
 					gen_var(new TH1D("gen_var", "gen_var", nbins, 0, nbins)),
 					reco_var(new TH1D("reco_var", "reco_var", nbins, 0, nbins)),
 					gen_vs_reco(new TH2D("gen_vs_reco", "gen_vs_reco", nbins, 0, nbins, nbins, 0, nbins)),
+					cov_hist(),
 					roo_response(),
 					roounfold_svd_k(),
-					roounfold_svd_tau(){
-		gROOT->SetBatch(1);
-//		gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
-		gROOT->ProcessLine("gErrorAbortLevel = 1001;");
+					roounfold_svd_tau() {
 		// from toy MC 1
 		data->SetBinContent(1, 365);
 		data->SetBinContent(2, 578);
@@ -45,7 +42,7 @@ struct TauSVDUnfoldSetup {
 		reco_var->SetBinContent(4, 195);
 		reco_var->SetBinContent(5, 61);
 		reco_var->SetBinContent(6, 29);
-		set_sqrt_N_error (reco_var);
+		set_sqrt_N_error(reco_var);
 
 		gen_var->SetBinContent(1, 3441);
 		gen_var->SetBinContent(2, 5181);
@@ -88,15 +85,18 @@ struct TauSVDUnfoldSetup {
 		roounfold_svd_k = new RooUnfoldSvd(roo_response, data, kreg, n_toy);
 		roounfold_svd_tau = new RooUnfoldSvd(roo_response, data, taureg, n_toy);
 
+		roounfold_svd_tau->Hreco(RooUnfold::kNoError);
+		TH2D* cov = TauSVDUnfold::get_data_covariance_matrix(data);
+		cov_hist = roounfold_svd_tau->Impl()->GetUnfoldCovMatrix(cov, n_toy);
+		delete cov;
 	}
 	~TauSVDUnfoldSetup() {
 		delete data;
 		delete gen_var;
 		delete reco_var;
 		delete gen_vs_reco;
+		delete cov_hist;
 		delete roo_response;
-//		delete tau_svd_unfold;
-		delete roounfold_svd_k;
 		delete roounfold_svd_tau;
 	}
 
@@ -114,14 +114,14 @@ struct TauSVDUnfoldSetup {
 		}
 	}
 
-	unsigned int nbins;
+	uint32_t nbins;
 	unsigned int n_toy;
 	int kreg;
 	double taureg;
 	TH1D* data, *gen_var, *reco_var;
 	TH2D* gen_vs_reco;
+	TH2D* cov_hist;
 	RooUnfoldResponse* roo_response;
-//	TauSVDUnfold* tau_svd_unfold;
 	RooUnfoldSvd* roounfold_svd_k;
 	RooUnfoldSvd* roounfold_svd_tau;
 
@@ -130,7 +130,7 @@ struct TauSVDUnfoldSetup {
 BOOST_AUTO_TEST_SUITE (TauSVDUnfoldTestSuite)
 BOOST_FIXTURE_TEST_CASE(test_get_data_covariance_matrix, TauSVDUnfoldSetup) {
 	TH2D* cov = TauSVDUnfold::get_data_covariance_matrix(data);
-	for (auto i = 1; i <= nbins; ++i) {
+	for (uint32_t i = 1; i <= nbins; ++i) {
 		double data_error = data->GetBinError(i);
 		BOOST_CHECK_EQUAL(cov->GetBinContent(i, i), data_error * data_error);
 	}
@@ -138,16 +138,42 @@ BOOST_FIXTURE_TEST_CASE(test_get_data_covariance_matrix, TauSVDUnfoldSetup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_global_correlation, TauSVDUnfoldSetup) {
-	double corr = TauSVDUnfold::get_global_correlation(data);
-	BOOST_CHECK_EQUAL(corr, -1.);
+	double corr = TauSVDUnfold::get_global_correlation(cov_hist, data);
+	BOOST_CHECK_CLOSE(corr, 99, 1);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_global_correlation_hist, TauSVDUnfoldSetup) {
-	TH1D* corr_hist = TauSVDUnfold::get_global_correlation_hist(data);
-	for (auto i = 1; i <= nbins; ++i) {
-		BOOST_CHECK_EQUAL(corr_hist->GetBinContent(i), i * i);
+	TH1D* corr_hist = TauSVDUnfold::get_global_correlation_hist(cov_hist, data);
+	// for the above example, the first bin should be around 95 %
+	BOOST_CHECK_CLOSE(corr_hist->GetBinContent(1), 95, 1);
+	// for all others it should be between 99 and 100 %
+	for (uint32_t i = 2; i <= nbins; ++i) {
+		BOOST_CHECK_CLOSE(corr_hist->GetBinContent(i), 99, 1);
 	}
 	delete corr_hist;
 }
 
+BOOST_FIXTURE_TEST_CASE(test_k_to_tau, TauSVDUnfoldSetup) {
+	const TauSVDUnfold* tau_svd = (TauSVDUnfold*) roounfold_svd_tau->Impl();
+	double tau = tau_svd->GetTau();
+	BOOST_CHECK_EQUAL(tau, taureg);
+	TVectorD ASV = tau_svd->getASV();
+	uint32_t n_elements = ASV.GetNoElements();
+	BOOST_CHECK_EQUAL(n_elements, nbins + 1);
+	tau = tau_svd->kToTau(kreg);
+	BOOST_CHECK_CLOSE(tau, 3.83, 0.1);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_tau, TauSVDUnfoldSetup) {
+	double tau = ((TauSVDUnfold*) roounfold_svd_tau->Impl())->GetTau();
+	BOOST_CHECK_EQUAL(tau, taureg);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_ASV, TauSVDUnfoldSetup) {
+	const TauSVDUnfold* tau_svd = (TauSVDUnfold*) roounfold_svd_tau->Impl();
+	TVectorD ASV = tau_svd->getASV();
+	uint32_t n_elements = ASV.GetNoElements();
+	BOOST_CHECK_EQUAL(n_elements, nbins + 1);
+	BOOST_CHECK(ASV.NonZeros() > 0);
+}
 BOOST_AUTO_TEST_SUITE_END()
