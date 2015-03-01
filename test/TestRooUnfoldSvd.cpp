@@ -29,7 +29,9 @@ struct RooUnfoldSvdSetup {
 					roounfold_svd_k(),
 					roounfold_svd_tau() {
 		gROOT->SetBatch(1);
-//		gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
+		gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
+		// crash on ROOT::Error
+		gROOT->ProcessLine("gErrorAbortLevel = 2001;");
 		// from toy MC 1
 		data->SetBinContent(1, 365);
 		data->SetBinContent(2, 578);
@@ -114,6 +116,14 @@ struct RooUnfoldSvdSetup {
 		}
 	}
 
+	void check_unfolded_data_against_truth(const TH1D* unfolded_data, bool use_sqrt_N = false) {
+		for (auto i = 1; i <= unfolded_data->GetNbinsX(); ++i) {
+			double error = use_sqrt_N ? sqrt(unfolded_data->GetBinContent(i)) : unfolded_data->GetBinError(i);
+			BOOST_CHECK_CLOSE(unfolded_data->GetBinContent(i), gen_var->GetBinContent(i), error);
+//			cout << unfolded_data->GetBinContent(i) << " +-" << error << endl;
+		}
+	}
+
 	unsigned int nbins;
 	unsigned int n_toy;
 	int kreg;
@@ -145,27 +155,55 @@ BOOST_FIXTURE_TEST_CASE(test_get_k_from_constructor, RooUnfoldSvdSetup) {
 
 BOOST_FIXTURE_TEST_CASE(test_k_unfold, RooUnfoldSvdSetup) {
 	TH1D* unfolded_data = (TH1D*) roounfold_svd_k->Hreco(RooUnfold::kCovToy);
-	for (auto i = 1; i <= unfolded_data->GetNbinsX(); ++i) {
-		BOOST_CHECK_CLOSE(unfolded_data->GetBinContent(i), gen_var->GetBinContent(i), unfolded_data->GetBinError(i));
-		cout << unfolded_data->GetBinContent(i) << " +-" << unfolded_data->GetBinError(i) << endl;
-	}
+	check_unfolded_data_against_truth(unfolded_data);
 	delete unfolded_data;
 }
 
-BOOST_FIXTURE_TEST_CASE(test_tau_unfold, RooUnfoldSvdSetup) {
-	// this gives Error in <TVectorT<double>::operator=(const TVectorT<Element> &)>: vectors not compatible
-	roounfold_svd_tau->SetKterm(3);
+BOOST_FIXTURE_TEST_CASE(test_k_unfold_kNoError_errors, RooUnfoldSvdSetup) {
+	TH1D* unfolded_data = (TH1D*) roounfold_svd_k->Hreco(RooUnfold::kNoError);
+	check_unfolded_data_against_truth(unfolded_data, true);
+	delete unfolded_data;
+}
+
+BOOST_FIXTURE_TEST_CASE(test_k_unfold_kErrors_errors, RooUnfoldSvdSetup) {
+	TH1D* unfolded_data = (TH1D*) roounfold_svd_k->Hreco(RooUnfold::kErrors);
+	check_unfolded_data_against_truth(unfolded_data);
+	delete unfolded_data;
+}
+
+BOOST_FIXTURE_TEST_CASE(test_k_unfold_kCovariance_errors, RooUnfoldSvdSetup) {
+	TH1D* unfolded_data = (TH1D*) roounfold_svd_k->Hreco(RooUnfold::kCovariance);
+	check_unfolded_data_against_truth(unfolded_data);
+	delete unfolded_data;
+}
+
+BOOST_FIXTURE_TEST_CASE(test_tau_unfold_kNoError_errors, RooUnfoldSvdSetup) {
+	// FIXME: Hreco has errors == 0
+	TH1D* unfolded_data = (TH1D*) roounfold_svd_tau->Hreco(RooUnfold::kNoError);
+	// the bug can be seen with
+	// check_unfolded_data_against_truth(unfolded_data);
+	check_unfolded_data_against_truth(unfolded_data, true);
+	delete unfolded_data;
+}
+
+BOOST_FIXTURE_TEST_CASE(test_tau_unfold_kErrors_errors, RooUnfoldSvdSetup) {
+	TH1D* unfolded_data = (TH1D*) roounfold_svd_tau->Hreco(RooUnfold::kErrors);
+	check_unfolded_data_against_truth(unfolded_data);
+	delete unfolded_data;
+}
+
+BOOST_FIXTURE_TEST_CASE(test_tau_unfold_kCovariance_errors, RooUnfoldSvdSetup) {
+	TH1D* unfolded_data = (TH1D*) roounfold_svd_tau->Hreco(RooUnfold::kCovariance);
+	check_unfolded_data_against_truth(unfolded_data);
+	delete unfolded_data;
+}
+
+BOOST_FIXTURE_TEST_CASE(test_tau_unfold_kCovToy_errors, RooUnfoldSvdSetup) {
 	TH1D* unfolded_data = (TH1D*) roounfold_svd_tau->Hreco(RooUnfold::kCovToy);
-	// this gives Request index(-2) outside vector range of 0 - 7
-//	TH1D* unfolded_data = (TH1D*) roounfold_svd_tau->Hreco();
-	for (auto i = 1; i <= unfolded_data->GetNbinsX(); ++i) {
-		BOOST_CHECK_CLOSE(unfolded_data->GetBinContent(i), gen_var->GetBinContent(i), unfolded_data->GetBinError(i));
-		cout << unfolded_data->GetBinContent(i) << " +-" << unfolded_data->GetBinError(i) << endl;
-	}
-
-//	BOOST_CHECK_CLOSE(unfolded_data->GetBinContent(1), gen_var->GetBinContent(1), unfolded_data->GetBinError(1));
+	check_unfolded_data_against_truth(unfolded_data);
 	delete unfolded_data;
 }
+
 
 BOOST_FIXTURE_TEST_CASE(test_get_reg_parm_k, RooUnfoldSvdSetup) {
 	BOOST_CHECK_EQUAL(roounfold_svd_k->GetRegParm(), kreg);
