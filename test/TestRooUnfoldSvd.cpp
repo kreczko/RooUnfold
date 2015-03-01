@@ -10,7 +10,6 @@
 #include "../include/RooUnfoldSvd.h"
 #include <cmath>
 #include "TH2D.h"
-#include "TROOT.h"
 #include <iostream>
 
 using namespace std;
@@ -28,10 +27,6 @@ struct RooUnfoldSvdSetup {
 					roo_response(),
 					roounfold_svd_k(),
 					roounfold_svd_tau() {
-		gROOT->SetBatch(1);
-		gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
-		// crash on ROOT::Error
-		gROOT->ProcessLine("gErrorAbortLevel = 2001;");
 		// from toy MC 1
 		data->SetBinContent(1, 365);
 		data->SetBinContent(2, 578);
