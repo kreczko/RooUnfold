@@ -16,4 +16,6 @@ Makefile
 *~
 *Dict.cxx
 *Dict_rdict.pcm
-Test*
+Test/*
+/Test/
+*.pyc
