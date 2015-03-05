@@ -27,7 +27,7 @@
 #include "TVectorD.h"
 #include "TLine.h"
 
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 #endif
 
 #include "ArgVars.h"

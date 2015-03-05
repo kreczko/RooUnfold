@@ -11,8 +11,8 @@ echo "Checking PyROOT installation"
 time python -c 'import ROOT; ROOT.TBrowser()'
 
 # Check that RooUnfold can be imported
-echo "Checking RooUnfold library"
+echo "Checking RooUnfold library in PyROOT"
 time python -c 'from ROOT import gSystem; gSystem.Load("libRooUnfold.so");from ROOT import RooUnfoldResponse'
-
+time python test/test_pyroot.py
 echo "Executing unit tests"
 make test
