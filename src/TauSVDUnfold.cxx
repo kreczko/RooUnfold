@@ -211,11 +211,8 @@ TH1D* TauSVDUnfold::Unfold(double tau) {
 		M2H(Xtau, *fXtau);
 		M2H(Xinv, *fXinv);
 	}
-
-	// DAVID
-	// Speichere die Kruemmung ab!
-	fCurv = GetCurvature(vw, mCurv);
 	// Get Curvature and also chi2 in case of MC unfolding
+	fCurv = GetCurvature(vw, mCurv);
 	if (!fToyMode && !fMatToyMode) {
 		Info("Unfold", "Unfolding param: %i", k + 1);
 		Info("Unfold", "Curvature of weight distribution: %f", fCurv);
@@ -502,7 +499,10 @@ TH2D* TauSVDUnfold::GetUnfoldCovMatrix(const TH2D* cov, Int_t ntoys, Int_t seed)
 			fToyhisto->SetBinContent(j, fBdat->GetBinContent(j) + g(j - 1));
 			fToyhisto->SetBinError(j, fBdat->GetBinError(j));
 		}
-		unfres = Unfold(GetTau());
+		if (GetKReg() > 0)
+			unfres = Unfold(GetKReg());
+		else
+			unfres = Unfold(GetTau());
 
 		for (Int_t j = 1; j <= fNdim; j++) {
 			toymean->SetBinContent(j, toymean->GetBinContent(j) + unfres->GetBinContent(j) / ntoys);
@@ -530,7 +530,11 @@ TH2D* TauSVDUnfold::GetUnfoldCovMatrix(const TH2D* cov, Int_t ntoys, Int_t seed)
 			fToyhisto->SetBinContent(j, fBdat->GetBinContent(j) + g(j - 1));
 			fToyhisto->SetBinError(j, fBdat->GetBinError(j));
 		}
-		unfres = Unfold(GetTau());
+
+		if (GetKReg() > 0)
+			unfres = Unfold(GetKReg());
+		else
+			unfres = Unfold(GetTau());
 
 		for (Int_t j = 1; j <= fNdim; j++) {
 			for (Int_t k = 1; k <= fNdim; k++) {
@@ -580,8 +584,10 @@ TH2D* TauSVDUnfold::GetAdetCovMatrix(Int_t ntoys, Int_t seed = 1) {
 				}
 			}
 		}
-
-		unfres = Unfold(GetTau());
+		if (GetKReg() > 0)
+			unfres = Unfold(GetKReg());
+		else
+			unfres = Unfold(GetTau());
 
 		for (Int_t j = 1; j <= fNdim; j++) {
 			toymean->SetBinContent(j, toymean->GetBinContent(j) + unfres->GetBinContent(j) / ntoys);
@@ -601,7 +607,10 @@ TH2D* TauSVDUnfold::GetAdetCovMatrix(Int_t ntoys, Int_t seed = 1) {
 			}
 		}
 
-		unfres = Unfold(GetTau());
+		if (GetKReg() > 0)
+			unfres = Unfold(GetKReg());
+		else
+			unfres = Unfold(GetTau());
 
 		for (Int_t j = 1; j <= fNdim; j++) {
 			for (Int_t k = 1; k <= fNdim; k++) {
