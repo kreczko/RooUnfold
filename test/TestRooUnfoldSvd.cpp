@@ -113,6 +113,7 @@ struct RooUnfoldSvdSetup {
 
 	void check_unfolded_data_against_truth(const TH1D* unfolded_data, bool use_sqrt_N = false) {
 		for (auto i = 1; i <= unfolded_data->GetNbinsX(); ++i) {
+//			cout << unfolded_data->GetBinContent(i) << "+-" << unfolded_data->GetBinError(i) << endl;
 			double error = use_sqrt_N ? sqrt(unfolded_data->GetBinContent(i)) : unfolded_data->GetBinError(i);
 			double relative_error = error / unfolded_data->GetBinContent(i);
 			// error for BOOST_CHECK_CLOSE has to be given in %

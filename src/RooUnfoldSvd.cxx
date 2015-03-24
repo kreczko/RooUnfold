@@ -180,7 +180,10 @@ RooUnfoldSvd::Unfold()
 	if (_verbose >= 1)
 		cout << "SVD init " << _reshist->GetNbinsX() << " x " << _reshist->GetNbinsY() << " bins, kreg=" << _kreg
 				<< " taureg=" << _taureg << endl;
-  _svd= new TauSVDUnfold (_meas1d, _train1d, _truth1d, _reshist);
+  if(_use_tau_unfolding)
+	  _svd= new TauSVDUnfold (_meas1d, _train1d, _truth1d, _reshist);
+  else
+	  _svd= new TSVDUnfold_local (_meas1d, _train1d, _truth1d, _reshist);
   TH1D* rechist = 0;
   if (_use_tau_unfolding)
 	  rechist = ((TauSVDUnfold*) _svd)->Unfold(_taureg);
