@@ -20,7 +20,7 @@ END_HTML */
 
 /////////////////////////////////////////////////////////////
 
-#include "RooUnfoldInvert.h"
+#include "../include/RooUnfoldInvert.h"
 
 #include <iostream>
 
@@ -30,7 +30,7 @@ END_HTML */
 #include "TMatrixD.h"
 #include "TDecompSVD.h"
 
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 
 using std::cout;
 using std::cerr;

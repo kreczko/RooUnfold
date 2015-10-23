@@ -19,13 +19,13 @@ END_HTML */
 
 /////////////////////////////////////////////////////////////
 
-#include "RooUnfoldBinByBin.h"
+#include "../include/RooUnfoldBinByBin.h"
 
 #include <iostream>
 #include "TH1.h"
 #include "TH2.h"
 
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 
 ClassImp (RooUnfoldBinByBin);
 

@@ -1,6 +1,6 @@
 //=====================================================================-*-C++-*-
 // File and Version Information:
-//      $Id$
+//      $Id: RooUnfoldTUnfold.h 274 2011-02-04 22:07:32Z T.J.Adye $
 //
 // Description:
 //      Unfolding class using TUnfold from ROOT to do the actual unfolding.
@@ -32,15 +32,15 @@ public:
   RooUnfoldTUnfold& operator= (const RooUnfoldTUnfold& rhs); // assignment operator
   virtual RooUnfoldTUnfold* Clone (const char* newname= 0) const;
   RooUnfoldTUnfold (const RooUnfoldResponse* res, const TH1* meas,TUnfold::ERegMode reg=TUnfold::kRegModeDerivative,
-                    const char* name= 0, const char* title= 0);
+  const char* name= 0, const char* title= 0);
 
   void Reset();
   TUnfold* Impl();
-  void FixTau(Double_t tau);
+  void FixTau(double tau);
   void OptimiseTau();
-  virtual void SetRegParm(Double_t parm);
-  Double_t GetTau() const;
-  virtual Double_t GetRegParm() const;
+  virtual void SetRegParm(double parm);
+  double GetTau() const;
+  virtual double GetRegParm() const;
   void SetRegMethod (TUnfold::ERegMode regmethod);
   TUnfold::ERegMode GetRegMethod() const;
 
@@ -56,8 +56,8 @@ protected:
 private:
   TUnfold::ERegMode _reg_method; //Regularisation method
   TUnfold* _unf; //! Implementation in TUnfold object (no streamer)
-  Bool_t tau_set;
-  Double_t _tau;
+  bool tau_set;
+  double _tau;
 
 public:
 
@@ -76,7 +76,7 @@ RooUnfoldTUnfold::RooUnfoldTUnfold()
 
 inline
 RooUnfoldTUnfold::RooUnfoldTUnfold (const char* name, const char* title)
-  : RooUnfold(name,title)
+: RooUnfold(name,title)
 {
   // Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -84,7 +84,7 @@ RooUnfoldTUnfold::RooUnfoldTUnfold (const char* name, const char* title)
 
 inline
 RooUnfoldTUnfold::RooUnfoldTUnfold (const TString& name, const TString& title)
-  : RooUnfold(name,title)
+: RooUnfold(name,title)
 {
   // Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -106,21 +106,21 @@ RooUnfoldTUnfold::~RooUnfoldTUnfold()
 
 
 inline
-void RooUnfoldTUnfold::SetRegParm(Double_t parm)
+void RooUnfoldTUnfold::SetRegParm(double parm)
 {
   // Set regularisation parameter (tau)
   FixTau(parm);
 }
 
 inline
-Double_t RooUnfoldTUnfold::GetTau() const
+double RooUnfoldTUnfold::GetTau() const
 {
   // Return regularisation parameter (tau)
   return _tau;
 }
 
 inline
-Double_t RooUnfoldTUnfold::GetRegParm() const
+double RooUnfoldTUnfold::GetRegParm() const
 {
   // Return regularisation parameter (tau)
   return _tau;

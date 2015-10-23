@@ -23,7 +23,7 @@ END_HTML */
 
 /////////////////////////////////////////////////////////////
 
-#include "RooUnfoldSvd.h"
+#include "../include/RooUnfoldSvd.h"
 
 #include <iostream>
 #include <iomanip>
@@ -34,13 +34,9 @@ END_HTML */
 #include "TH2.h"
 #include "TVectorD.h"
 #include "TMatrixD.h"
-#if defined(HAVE_TSVDUNFOLD) || ROOT_VERSION_CODE < ROOT_VERSION(5,28,0)
-#include "TSVDUnfold_local.h"  /* Use local copy of TSVDUnfold.h */
-#else
-#include "TSVDUnfold.h"
-#endif
+#include "../include/TauSVDUnfold.h"
 
-#include "RooUnfoldResponse.h"
+#include "../include/RooUnfoldResponse.h"
 
 using std::cout;
 using std::cerr;
@@ -56,13 +52,28 @@ RooUnfoldSvd::RooUnfoldSvd (const RooUnfoldSvd& rhs)
   CopyData (rhs);
 }
 
-RooUnfoldSvd::RooUnfoldSvd (const RooUnfoldResponse* res, const TH1* meas, Int_t kreg, Int_t ntoyssvd,
-                            const char* name, const char* title)
-  : RooUnfold (res, meas, name, title), _kreg(kreg ? kreg : res->GetNbinsTruth()/2), _ntoyssvd(ntoyssvd)
-{
-  // Constructor with response matrix object and measured unfolding input histogram.
-  // The regularisation parameter is kreg.
-  Init();
+RooUnfoldSvd::RooUnfoldSvd(const RooUnfoldResponse* res, const TH1* meas, Int_t kreg, Int_t ntoyssvd, const char* name,
+		const char* title) :
+				RooUnfold(res, meas, name, title),
+				_kreg(kreg ? kreg : res->GetNbinsTruth() / 2),
+				_taureg(-1.),
+				_use_tau_unfolding(false),
+				_ntoyssvd(ntoyssvd) {
+	// Constructor with response matrix object and measured unfolding input histogram.
+	// The regularisation parameter is kreg.
+	Init();
+}
+
+RooUnfoldSvd::RooUnfoldSvd(const RooUnfoldResponse* res, const TH1* meas, double taureg, Int_t ntoyssvd, const char* name,
+		const char* title) :
+				RooUnfold(res, meas, name, title),
+				_kreg(-1),
+				_taureg(taureg ? taureg: 0.),
+				_use_tau_unfolding(true),
+				_ntoyssvd(ntoyssvd) {
+	// Constructor with response matrix object and measured unfolding input histogram.
+	// The regularisation parameter is kreg.
+	Init();
 }
 
 RooUnfoldSvd*
@@ -111,10 +122,12 @@ void
 RooUnfoldSvd::CopyData (const RooUnfoldSvd& rhs)
 {
   _kreg= rhs._kreg;
+  _taureg = rhs._taureg;
+  _use_tau_unfolding = rhs._use_tau_unfolding;
   _ntoyssvd= rhs._ntoyssvd;
 }
 
-TSVDUnfold*
+TSVDUnfold_local*
 RooUnfoldSvd::Impl()
 {
   return _svd;
@@ -126,8 +139,11 @@ RooUnfoldSvd::Unfold()
   if (_res->GetDimensionTruth() != 1 || _res->GetDimensionMeasured() != 1) {
     cerr << "RooUnfoldSvd may not work very well for multi-dimensional distributions" << endl;
   }
-  if (_kreg < 0) {
-    cerr << "RooUnfoldSvd invalid kreg: " << _kreg << endl;
+  if ((_kreg < 0 && !_use_tau_unfolding) || (_taureg < 0 && _use_tau_unfolding)) {
+	if (_use_tau_unfolding)
+		cerr << "RooUnfoldSvd invalid taureg: " << _taureg << endl;
+	else
+		cerr << "RooUnfoldSvd invalid kreg: " << _kreg << endl;
     return;
   }
 
@@ -161,12 +177,18 @@ RooUnfoldSvd::Unfold()
     _truth1d->SetBinContent(_nt+1,nfakes);
   }
 
-  if (_verbose>=1) cout << "SVD init " << _reshist->GetNbinsX() << " x " << _reshist->GetNbinsY()
-                        << " bins, kreg=" << _kreg << endl;
-  _svd= new TSVDUnfold (_meas1d, _train1d, _truth1d, _reshist);
-
-  TH1D* rechist= _svd->Unfold (_kreg);
-
+	if (_verbose >= 1)
+		cout << "SVD init " << _reshist->GetNbinsX() << " x " << _reshist->GetNbinsY() << " bins, kreg=" << _kreg
+				<< " taureg=" << _taureg << endl;
+  if(_use_tau_unfolding)
+	  _svd= new TauSVDUnfold (_meas1d, _train1d, _truth1d, _reshist);
+  else
+	  _svd= new TSVDUnfold_local (_meas1d, _train1d, _truth1d, _reshist);
+  TH1D* rechist = 0;
+  if (_use_tau_unfolding)
+	  rechist = ((TauSVDUnfold*) _svd)->Unfold(_taureg);
+  else
+	  rechist = _svd->Unfold (_kreg);
   _rec.ResizeTo (_nt);
   for (Int_t i= 0; i<_nt; i++) {
     _rec[i]= rechist->GetBinContent(i+1);
@@ -232,4 +254,12 @@ void RooUnfoldSvd::Streamer (TBuffer &R__b)
   } else {
     RooUnfoldSvd::Class()->WriteBuffer (R__b, this);
   }
+}
+
+void RooUnfoldSvd::SetTauTerm(double taureg) {
+	_taureg = taureg;
+}
+
+double RooUnfoldSvd::GetTauTerm() const {
+	return _taureg;
 }

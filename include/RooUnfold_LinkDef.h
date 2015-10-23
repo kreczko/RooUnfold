@@ -14,14 +14,10 @@
 #pragma link C++ class RooUnfoldErrors+;
 #pragma link C++ class RooUnfoldParms+;
 #pragma link C++ class RooUnfoldInvert+;
-#ifndef NOTUNFOLD
 #pragma link C++ class RooUnfoldTUnfold+;
-#endif
-#ifdef HAVE_DAGOSTINI
-#pragma link C++ class RooUnfoldDagostini+;
-#endif
-#ifdef HAVE_TSVDUNFOLD
-#pragma link C++ class TSVDUnfold+;
-#endif
+#pragma link C++ class TauSVDUnfold+;
+#pragma link C++ class TSVDUnfold_local+;
+#pragma link C++ class RooUnfoldUtils+;
+//#pragma link C++ class RooUnfoldDagostini+;
 
 #endif
