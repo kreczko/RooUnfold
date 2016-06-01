@@ -38,8 +38,8 @@ set(ROOT_DICT_OUTPUT_DIR ${PROJECT_SOURCE_DIR})
 # and add LinkDef file to the end
 LIST( APPEND ROOT_DICT_INPUT_HEADERS ${LINK_DEF_FILE} )
 
-# generate dictionary sources using rootcint 
-GEN_ROOT_DICT_SOURCE( ${CINTFILE} ) 
+# generate dictionary sources using rootcint
+GEN_ROOT_DICT_SOURCE( ${CINTFILE} )
 
 # get boost
 set(Boost_USE_MULTITHREADED ON)
@@ -69,7 +69,7 @@ target_link_libraries(${PROJECT_LIB_NAME}
 	 ${Boost_LIBRARIES}
 	 ${ROOT_LIBRARIES}
 	 )
-	 
+
 # tests
 enable_testing()
 set(PROJECT_TEST_NAME ${PROJECT_NAME_STR}_test)
@@ -83,3 +83,8 @@ target_link_libraries(${PROJECT_TEST_NAME}
 	 )
 
 add_test(test1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_TEST_NAME})
+
+# install
+install(TARGETS ${PROJECT_LIB_NAME} ${PROJECT_TEST_NAME}
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)
