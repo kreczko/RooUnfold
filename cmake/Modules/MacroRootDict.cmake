@@ -107,7 +107,6 @@ ENDMACRO()
 # returns:
 #       ROOT_DICT_OUTPUT_SOURCES - list containing generated source and other
 #           previously generated sources
-                                    
 # ----------------------------------------------------------------------------
 MACRO( GEN_ROOT_DICT_SOURCE _dict_src_filename )
 
@@ -116,21 +115,36 @@ MACRO( GEN_ROOT_DICT_SOURCE _dict_src_filename )
     # need to prefix all include dirs with -I
     set( _dict_includes )
     FOREACH( _inc ${ROOT_DICT_INCLUDE_DIRS} )
-        SET( _dict_includes "${_dict_includes}\t-I${_inc}")  #fg: the \t fixes a wired string expansion 
+        SET( _dict_includes "${_dict_includes}\t-I${_inc}" )  #fg: the \t fixes a wired string expansion
         #SET( _dict_includes ${_dict_includes} -I${_inc} )
     ENDFOREACH()
 
     STRING( REPLACE "/" "_" _dict_src_filename_nosc ${_dict_src_filename} )
     SET( _dict_src_file ${ROOT_DICT_OUTPUT_DIR}/${_dict_src_filename_nosc} )
     STRING( REGEX REPLACE "^(.*)\\.(.*)$" "\\1.h" _dict_hdr_file "${_dict_src_file}" )
-    ADD_CUSTOM_COMMAND(
-        OUTPUT  ${_dict_src_file} ${_dict_hdr_file}
-        COMMAND mkdir -p ${ROOT_DICT_OUTPUT_DIR}
-        COMMAND ${ROOT_CINT_WRAPPER} -f "${_dict_src_file}" -c -p ${ROOT_DICT_CINT_DEFINITIONS} ${_dict_includes} ${ROOT_DICT_INPUT_HEADERS}
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        DEPENDS ${ROOT_DICT_INPUT_HEADERS}
-        COMMENT "generating: ${_dict_src_file} ${_dict_hdr_file}"
-    )
+    IF(ROOT_VERSION_MAJOR LESS 6)
+      ADD_CUSTOM_COMMAND(
+          OUTPUT  ${_dict_src_file} ${_dict_hdr_file}
+          COMMAND mkdir -p ${ROOT_DICT_OUTPUT_DIR}
+          COMMAND ${ROOT_CINT_WRAPPER} -f "${_dict_src_file}" -c -p ${ROOT_DICT_CINT_DEFINITIONS} ${_dict_includes} ${ROOT_DICT_INPUT_HEADERS}
+          WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+          DEPENDS ${ROOT_DICT_INPUT_HEADERS}
+          COMMENT "generating: ${_dict_src_file} ${_dict_hdr_file}"
+      )
+    ELSE()
+      STRING(REPLACE ".cxx" "_rdict.pcm" _dict_pcm_file ${_dict_src_file})
+      ADD_CUSTOM_COMMAND(
+          OUTPUT  ${_dict_src_file} ${_dict_hdr_file} ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold.rootmap ${_dict_pcm_file}
+          COMMAND mkdir -p ${ROOT_DICT_OUTPUT_DIR}
+          COMMAND ${ROOT_CINT_WRAPPER} -f "${_dict_src_file}" -rmf ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold.rootmap -rml libRooUnfold -c -p ${ROOT_DICT_CINT_DEFINITIONS} ${_dict_includes} ${ROOT_DICT_INPUT_HEADERS}
+          WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+          DEPENDS ${ROOT_DICT_INPUT_HEADERS}
+          COMMENT "generating: ${_dict_src_file} ${_dict_hdr_file} and PCH/rootmap file"
+      )
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold.rootmap" DESTINATION lib)
+      install(FILES ${_dict_pcm_file} DESTINATION lib)
+    ENDIF()
+
     LIST( APPEND ROOT_DICT_OUTPUT_SOURCES ${_dict_src_file} )
 
 ENDMACRO()
@@ -142,5 +156,3 @@ MACRO( GEN_ROOT_DICT_SOURCES _dict_src_filename )
     GEN_ROOT_DICT_SOURCE( ${_dict_src_filename} )
 ENDMACRO()
 # ============================================================================
-
-

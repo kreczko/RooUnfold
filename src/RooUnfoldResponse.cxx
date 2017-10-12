@@ -33,6 +33,7 @@
 #include "TH3.h"
 #include "TVectorD.h"
 #include "TMatrixD.h"
+#include "TBuffer.h"
 
 using std::cout;
 using std::cerr;

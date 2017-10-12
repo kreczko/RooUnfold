@@ -34,6 +34,7 @@ END_HTML */
 #include "TH2.h"
 #include "TVectorD.h"
 #include "TMatrixD.h"
+#include "TBuffer.h"
 #include "../include/TauSVDUnfold.h"
 
 #include "../include/RooUnfoldResponse.h"

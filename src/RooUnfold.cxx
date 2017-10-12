@@ -80,6 +80,7 @@ END_HTML */
 #include "TDecompSVD.h"
 #include "TDecompChol.h"
 #include "TRandom.h"
+#include "TBuffer.h"
 
 #include "../include/RooUnfoldResponse.h"
 #include "../include/RooUnfoldErrors.h"

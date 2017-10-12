@@ -17,7 +17,7 @@
 #   ROOT_COMPONENT_LIBRARIES    : list of ROOT component libraries
 #   ROOT_${COMPONENT}_FOUND     : set to TRUE or FALSE for each library
 #   ROOT_${COMPONENT}_LIBRARY   : path to individual libraries
-#   
+#
 #
 #   Please note that by convention components should be entered exactly as
 #   the library names, i.e. the component name equivalent to the library
@@ -88,7 +88,7 @@ IF( ROOT_CONFIG_EXECUTABLE )
     # ==============================================
 
     INCLUDE( MacroCheckPackageVersion )
-    
+
     EXECUTE_PROCESS( COMMAND "${ROOT_CONFIG_EXECUTABLE}" --version
         OUTPUT_VARIABLE _version
         RESULT_VARIABLE _exit_code
@@ -105,7 +105,7 @@ IF( ROOT_CONFIG_EXECUTABLE )
     ENDIF()
 
     CHECK_PACKAGE_VERSION( ROOT ${ROOT_VERSION} )
-	
+
 	# find rootcint
 	SET( ROOT_CINT_EXECUTABLE ROOT_CINT_EXECUTABLE-NOTFOUND )
 	MARK_AS_ADVANCED( ROOT_CINT_EXECUTABLE )
@@ -179,7 +179,7 @@ IF( ROOT_CONFIG_EXECUTABLE )
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     IF( _exit_code EQUAL 0 )
-        
+
         # create a list out of the output
         SEPARATE_ARGUMENTS( _aux )
 
@@ -200,6 +200,10 @@ IF( ROOT_CONFIG_EXECUTABLE )
             ENDIF()
 
         ENDFOREACH()
+
+        IF(NOT ROOT_VERSION_MAJOR LESS 6)
+	          LIST( APPEND _root_libnames Unfold )
+        ENDIF()
 
     ENDIF()
 
@@ -261,4 +265,3 @@ ENDIF( ROOT_FOUND )
 # FIND_PACKAGE( ROOT REQUIRED )
 # FIND_PACKAGE( ROOT COMPONENTS geartgeo QUIET )
 SET( ROOT_FIND_REQUIRED )
-
