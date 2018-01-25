@@ -54,7 +54,21 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 #Check the compiler and set the compile and link flags
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+# properly set the C++ standard according to the standard used for the root build
+# Enable C++11 by default if found in ROOT
+message(STATUS "Determining C++ standard ...")
+if(ROOT_HAS_CXX11 AND NOT DISABLE_CXX11)
+  message(STATUS "Enabling C++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
+
+# Enable C++14 by default if found in ROOT
+if(ROOT_HAS_CXX14 AND NOT DISABLE_CXX14)
+  message(STATUS "Enabling C++14")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+endif()
 # first attempt to make cmake work again on OS X
 if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (APPLE))
 	MESSAGE(STATUS "** std library for clang: libc++")

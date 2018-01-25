@@ -238,6 +238,36 @@ IF( ROOT_CONFIG_EXECUTABLE )
         MESSAGE( STATUS "Check for libdl.so: ${DL_LIB}" )
     ENDIF()
 
+    # Check for root-config scripts
+    #find_program(ROOT_CONFIG NAMES root-config PATHS ${ROOTSYS}/bin NO_DEFAULT_PATH)
+    #if(NOT ROOT_CONFIG)
+    #    message(FATAL_ERROR "Could not find root-config script.")
+    #endif(NOT ROOT_CONFIG)
+    #mark_as_advanced(ROOT_CONFIG)
+
+    # Setting ROOT compiler flags (except the -I parts) to a variable
+    execute_process(COMMAND ${ROOT_CONFIG_EXECUTABLE} --auxcflags OUTPUT_VARIABLE _ROOT_CXX_FLAGS ERROR_VARIABLE error OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(error)
+        message(FATAL_ERROR "Error retrieving ROOT compiler flags: ${error}")
+    endif(error)
+    string(STRIP "${_ROOT_CXX_FLAGS}" ROOT_CXX_FLAGS)
+
+    # Check if ROOT was built with C++11 support
+    if(ROOT_CXX_FLAGS MATCHES "-std=c\\+\\+11")
+        message(STATUS "ROOT was built with C++11 support")
+        set(ROOT_HAS_CXX11 TRUE)
+    else()
+        set(ROOT_HAS_CXX11 FALSE)
+    endif()
+
+    # Check if ROOT was built with C++14 support
+    if(ROOT_CXX_FLAGS MATCHES "-std=c\\+\\+14" OR ROOT_CXX_FLAGS MATCHES "-std=c\\+\\+1y")
+        message(STATUS "ROOT was built with C++14 support")
+        set(ROOT_HAS_CXX14 TRUE)
+    else()
+        set(ROOT_HAS_CXX14 FALSE)
+    endif()
+
 ENDIF( ROOT_CONFIG_EXECUTABLE )
 
 # Threads library
