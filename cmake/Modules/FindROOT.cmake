@@ -268,6 +268,14 @@ IF( ROOT_CONFIG_EXECUTABLE )
         set(ROOT_HAS_CXX14 FALSE)
     endif()
 
+    # Check if ROOT was built with C++14 support
+    if(ROOT_CXX_FLAGS MATCHES "-std=c\\+\\+17" OR ROOT_CXX_FLAGS MATCHES "-std=c\\+\\+1z")
+        message(STATUS "ROOT was built with C++17 support")
+        set(ROOT_HAS_CXX14 TRUE)
+    else()
+        set(ROOT_HAS_CXX14 FALSE)
+    endif()
+
 ENDIF( ROOT_CONFIG_EXECUTABLE )
 
 # Threads library
